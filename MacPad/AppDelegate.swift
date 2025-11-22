@@ -9,7 +9,17 @@ struct NewTextApp: App {
         // Register defaults to ensure stable preferences across launches
         UserDefaults.standard.register(defaults: [
             "application.textMode": "plain",
-            "prefs.selectedPane": PreferencesPane.application.rawValue
+            "prefs.selectedPane": PreferencesPane.application.rawValue,
+            // File Browser font defaults
+            "browser.fontDesign": "system",   // system | monospaced
+            "browser.fontSize": 13.0,
+            "browser.sortOrder": "name",       // name, type, date, size
+            // Editor defaults
+            "editor.goToDefinition": true,
+            "editor.wordWrap": true,
+            "tabs.draggable": true,
+            // Advanced defaults
+            "advanced.linting": true
         ])
     }
     var body: some Scene {
@@ -18,6 +28,7 @@ struct NewTextApp: App {
         }
         .commands {
             FileMenuCommands()
+            EditMenuCommands()
         }
         Settings {
             PreferencesRootView()

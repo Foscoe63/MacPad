@@ -13,6 +13,10 @@ struct ContentView: View {
     @State private var isHoveringDivider: Bool = false
     private let minSidebarWidth: CGFloat = 180
     private let maxSidebarWidth: CGFloat = 600
+    
+    // Quick Open state
+    @State private var showingQuickOpen = false
+    @State private var showingGoToLine = false
 
     private var preferredScheme: ColorScheme? {
         switch appTheme.lowercased() {
@@ -142,6 +146,22 @@ struct ContentView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.willResignActiveNotification)) { _ in
             appState.saveSessionIfEnabled()
+        }
+        .sheet(isPresented: $showingQuickOpen) {
+            QuickOpenView(isPresented: $showingQuickOpen)
+                .environmentObject(workspaceState)
+                .environmentObject(appState)
+        }
+        .sheet(isPresented: $showingGoToLine) {
+            if let doc = appState.getDocument(id: appState.selectedTab) {
+                GoToLineView(isPresented: $showingGoToLine, document: doc)
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .mpQuickOpen)) { _ in
+            showingQuickOpen = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .mpGoToLine)) { _ in
+            showingGoToLine = true
         }
     }
     
