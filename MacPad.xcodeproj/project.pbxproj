@@ -29,22 +29,9 @@
 		DE4C29382EAD1ECE0075C69B /* MacPadUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MacPadUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		DE4C29862EAD1F130075C69B /* Exceptions for "MacPad" folder in "MacPad" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Project,
-			);
-			target = DE4C29202EAD1ECD0075C69B /* MacPad */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		DE4C29232EAD1ECD0075C69B /* MacPad */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				DE4C29862EAD1F130075C69B /* Exceptions for "MacPad" folder in "MacPad" target */,
-			);
 			path = MacPad;
 			sourceTree = "<group>";
 		};

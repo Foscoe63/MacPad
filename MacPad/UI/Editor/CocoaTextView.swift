@@ -23,16 +23,8 @@ private func mpIsHardBlack(_ color: NSColor) -> Bool {
     return a > 0 && r < 0.1 && g < 0.1 && b < 0.1
 }
 
-// Check if we're in dark mode based on app theme preference
+// Check if we're in dark mode based on system appearance
 private func mpIsDarkMode() -> Bool {
-    let theme = (UserDefaults.standard.string(forKey: "app.theme") ?? "system").lowercased()
-    if theme == "dark" || theme == "highcontrast" {
-        return true
-    }
-    if theme == "light" || theme == "sepia" {
-        return false
-    }
-    // System theme - check actual system appearance
     if #available(macOS 10.14, *) {
         return NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
     }
@@ -50,11 +42,13 @@ struct CocoaTextView: NSViewRepresentable {
     // Optional attributed content for initial/refresh display when in Rich mode
     var attributed: NSAttributedString? = nil
     var syntaxMode: SyntaxMode = .swift
+    var fileExtension: String? = nil  // For custom syntax mode detection
     var lintingEnabled: Bool = true
     var goToDefinitionEnabled: Bool = true
     var linter: CodeLinter? = nil
     var onTextChange: ((String) -> Void)? = nil
     var onAttributedChange: ((NSAttributedString) -> Void)? = nil
+    var onCursorChange: ((Int, Int, Int) -> Void)? = nil // line, column, position
 
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -69,11 +63,17 @@ struct CocoaTextView: NSViewRepresentable {
         textView.isAutomaticSpellingCorrectionEnabled = false
         textView.isEditable = true
         textView.isSelectable = true
-        // For rich attributed content (RTF/HTML), disable adaptive color mapping ONLY if explicit colors exist to preserve
-        // Otherwise keep adaptive mapping so dynamic system colors render correctly in Dark/Light modes.
-        let hasExplicitFG = (attributed != nil) ? mpAttributedHasExplicitForegroundColor(attributed!) : false
-        let shouldDisableAdaptive = isRichText && (attributed != nil) && hasExplicitFG
-        textView.usesAdaptiveColorMappingForDarkAppearance = shouldDisableAdaptive ? false : true
+        // Disable adaptive color mapping for plain text mode when using themes
+        // This prevents NSTextView from automatically flipping colors based on appearance
+        if !isRichText {
+            // Plain text mode: always disable adaptive mapping so theme colors stay consistent
+            textView.usesAdaptiveColorMappingForDarkAppearance = false
+        } else {
+            // Rich text mode: disable ONLY when attributed content contains explicit colors to preserve
+            let hasExplicitFG = (attributed != nil) ? mpAttributedHasExplicitForegroundColor(attributed!) : false
+            let shouldDisableAdaptive = (attributed != nil) && hasExplicitFG
+            textView.usesAdaptiveColorMappingForDarkAppearance = shouldDisableAdaptive ? false : true
+        }
         textView.usesFindBar = true
         textView.allowsUndo = true
         textView.isVerticallyResizable = true
@@ -158,20 +158,17 @@ struct CocoaTextView: NSViewRepresentable {
                     storage.addAttribute(.foregroundColor, value: fg, range: NSRange(location: 0, length: storage.length))
                     storage.endEditing()
                 }
-            } else {
-                // Plain text mode: ensure textColor is set but don't apply it globally
-                // This allows syntax highlighting colors to show through
-                textView.textColor = .labelColor
-                
-                // Apply syntax highlighting for plain text mode
-                // Use async to ensure text storage is ready
-                DispatchQueue.main.async {
-                    if let storage = textView.textStorage, storage.length > 0 {
-                        context.coordinator.applySyntaxHighlighting(to: storage, syntaxMode: syntaxMode)
-                        context.coordinator.lastAppliedSyntaxMode = syntaxMode
+                } else {
+                    // Plain text mode: theme colors are already applied in applyTheme() above
+                    // Apply syntax highlighting for plain text mode
+                    // Use async to ensure text storage is ready
+                    DispatchQueue.main.async {
+                        if let storage = textView.textStorage, storage.length > 0 {
+                            context.coordinator.applySyntaxHighlighting(to: storage, syntaxMode: syntaxMode)
+                            context.coordinator.lastAppliedSyntaxMode = syntaxMode
+                        }
                     }
                 }
-            }
         }
 
         // Wrap in scroll view
@@ -181,26 +178,14 @@ struct CocoaTextView: NSViewRepresentable {
         scrollView.hasHorizontalScroller = false
         scrollView.autohidesScrollers = true
         scrollView.borderType = .noBorder
-        // Use solid backgrounds themed by Preferences
         scrollView.drawsBackground = true
-        let theme = (UserDefaults.standard.string(forKey: "app.theme") ?? "system").lowercased()
-        if theme == "sepia" {
-            scrollView.backgroundColor = NSColor(calibratedRed: 0.988, green: 0.972, blue: 0.938, alpha: 1.0)
-            textView.drawsBackground = true
-            textView.backgroundColor = NSColor(calibratedRed: 0.988, green: 0.972, blue: 0.938, alpha: 1.0)
-            textView.textColor = .textColor
-        } else if theme == "highcontrast" {
-            scrollView.backgroundColor = NSColor(calibratedWhite: 0.06, alpha: 1.0)
-            textView.drawsBackground = true
-            textView.backgroundColor = NSColor(calibratedWhite: 0.06, alpha: 1.0)
-            textView.textColor = NSColor(calibratedWhite: 0.92, alpha: 1.0)
-        } else {
-            scrollView.backgroundColor = .windowBackgroundColor
-            textView.drawsBackground = true
-            textView.backgroundColor = .textBackgroundColor
-            textView.textColor = .labelColor
-        }
+        textView.drawsBackground = true
+        
         scrollView.documentView = textView
+        
+        // Set coordinator properties
+        context.coordinator.textView = textView
+        context.coordinator.scrollView = scrollView
 
         // No NSRulerView usage; we draw a lightweight gutter view instead
         scrollView.hasVerticalRuler = false
@@ -212,9 +197,6 @@ struct CocoaTextView: NSViewRepresentable {
         DispatchQueue.main.async {
             textView.window?.makeFirstResponder(textView)
         }
-
-        context.coordinator.textView = textView
-        context.coordinator.scrollView = scrollView
         
         // Set up ⌘+click handling for Go to Definition using event monitoring
         if goToDefinitionEnabled {
@@ -233,11 +215,13 @@ struct CocoaTextView: NSViewRepresentable {
         context.coordinator.isUpdatingView = true
         defer { context.coordinator.isUpdatingView = false }
 
-        // Ensure adaptive color mapping matches current mode
-        // Disable ONLY when rich and attributed content contains explicit colors to preserve them
-        let hasExplicitFG = (attributed != nil) ? mpAttributedHasExplicitForegroundColor(attributed!) : false
-        let shouldDisableAdaptive = isRichText && (attributed != nil) && hasExplicitFG
-        textView.usesAdaptiveColorMappingForDarkAppearance = shouldDisableAdaptive ? false : true
+        // Configure adaptive color mapping
+        // For rich text mode, disable ONLY when attributed content contains explicit colors
+        if isRichText {
+            let hasExplicitFG = (attributed != nil) ? mpAttributedHasExplicitForegroundColor(attributed!) : false
+            let shouldDisableAdaptive = (attributed != nil) && hasExplicitFG
+            textView.usesAdaptiveColorMappingForDarkAppearance = shouldDisableAdaptive ? false : true
+        }
 
         // Update string if external change
         // IMPORTANT: In Rich mode with attributed content, do NOT overwrite the text storage
@@ -293,7 +277,8 @@ struct CocoaTextView: NSViewRepresentable {
         if isRichText && attributed == nil {
             let fg = textView.textColor ?? NSColor.labelColor
             var typing = textView.typingAttributes
-            let isDark = mpIsDarkMode()
+            let systemIsDark = NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+            let isDark = systemIsDark
             
             typing[.foregroundColor] = fg
             textView.typingAttributes = typing
@@ -465,7 +450,7 @@ struct CocoaTextView: NSViewRepresentable {
         // Prepare scroll notifications for gutter redraw during scroll
         context.coordinator.scrollView = nsView
         context.coordinator.ensureScrollNotifications()
-
+        
         // Line number gutter handling (no NSRulerView)
         let ensureGutter: () -> Void = {
             DispatchQueue.main.async {
@@ -562,6 +547,10 @@ struct CocoaTextView: NSViewRepresentable {
         private var appliedDiagnostics: Set<String> = []
         // Go to Definition event monitor
         private var goToDefinitionMonitor: Any?
+        // Bracket matching
+        private var bracketMatchRange: NSRange?
+        // Re-entrancy guard for typing attributes to prevent infinite loops
+        private var isUpdatingTypingAttributes = false
 
         init(_ parent: CocoaTextView) {
             self.parent = parent
@@ -675,7 +664,19 @@ struct CocoaTextView: NSViewRepresentable {
             
             let text = storage.string
             var appliedCount = 0
-            let patterns = syntaxMode.syntaxPatterns
+            
+            // Check for custom syntax mode first
+            let patterns: [(pattern: String, color: Color)]
+            if let ext = parent.fileExtension?.lowercased(),
+               let customMode = CustomSyntaxModeManager.shared.customModeForExtension(ext) {
+                // Use custom mode patterns
+                let colorScheme: ColorScheme = .dark // Could be improved to detect actual scheme
+                patterns = CustomSyntaxModeManager.shared.syntaxPatterns(for: customMode, colorScheme: colorScheme)
+                print("[SyntaxHighlight] Using custom syntax mode: \(customMode.name)")
+            } else {
+                // Use built-in mode patterns
+                patterns = syntaxMode.syntaxPatterns
+            }
             
             print("[SyntaxHighlight] Applying highlighting for \(syntaxMode.displayName), text length: \(text.count), patterns: \(patterns.count)")
             print("[SyntaxHighlight] Sample text (first 100 chars): \(String(text.prefix(100)))")
@@ -687,7 +688,7 @@ struct CocoaTextView: NSViewRepresentable {
             
             // Apply each syntax pattern
             // Process in order - later patterns can overwrite earlier ones if they overlap
-            for (pattern, color) in patterns {
+            for (patternString, color) in patterns {
                 // Convert SwiftUI Color to NSColor properly
                 #if os(macOS)
                 let nsColor = NSColor(color)
@@ -696,19 +697,27 @@ struct CocoaTextView: NSViewRepresentable {
                 #endif
                 var patternMatches = 0
                 
-                // Use Swift's regex API: matches is called on the String, not the Regex
-                for match in text.matches(of: pattern) {
-                    let range = match.range
-                    let nsRange = NSRange(range, in: text)
-                    if nsRange.location != NSNotFound && 
-                       nsRange.location + nsRange.length <= storage.length {
-                        // Use setAttributes to ensure it overrides any existing color
-                        let attrs: [NSAttributedString.Key: Any] = [.foregroundColor: nsColor]
-                        storage.setAttributes(attrs, range: nsRange)
-                        coloredRanges.insert(nsRange)
-                        appliedCount += 1
-                        patternMatches += 1
+                // Use NSRegularExpression to avoid Regex type issues with capture groups
+                do {
+                    let regex = try NSRegularExpression(pattern: patternString, options: [])
+                    let nsString = text as NSString
+                    let range = NSRange(location: 0, length: nsString.length)
+                    regex.enumerateMatches(in: text, options: [], range: range) { match, _, _ in
+                        if let match = match {
+                            let nsRange = match.range
+                            if nsRange.location != NSNotFound && 
+                               nsRange.location + nsRange.length <= storage.length {
+                                // Use setAttributes to ensure it overrides any existing color
+                                let attrs: [NSAttributedString.Key: Any] = [.foregroundColor: nsColor]
+                                storage.setAttributes(attrs, range: nsRange)
+                                coloredRanges.insert(nsRange)
+                                appliedCount += 1
+                                patternMatches += 1
+                            }
+                        }
                     }
+                } catch {
+                    print("[SyntaxHighlight] Invalid regex pattern '\(patternString)': \(error)")
                 }
                 
                 if patternMatches > 0 {
@@ -717,6 +726,7 @@ struct CocoaTextView: NSViewRepresentable {
             }
             
             // Set default text color for any ranges that weren't colored
+            // Use textView's textColor or system default
             let defaultColor = textView?.textColor ?? NSColor.labelColor
             let fullRange = NSRange(location: 0, length: storage.length)
             
@@ -811,10 +821,236 @@ struct CocoaTextView: NSViewRepresentable {
 
         func textViewDidChangeSelection(_ notification: Notification) {
             gutterView?.needsDisplay = true
+            updateCursorPosition()
+            updateBracketMatching()
+        }
+        
+        private func updateBracketMatching() {
+            guard let tv = textView, let storage = tv.textStorage else { return }
+            
+            // Remove previous bracket highlighting
+            if let oldRange = bracketMatchRange {
+                storage.removeAttribute(.backgroundColor, range: oldRange)
+                storage.removeAttribute(.foregroundColor, range: oldRange)
+            }
+            bracketMatchRange = nil
+            
+            let selectedRange = tv.selectedRange()
+            guard selectedRange.length == 0, selectedRange.location < storage.length else { return }
+            
+            let string = storage.string as NSString
+            let charIndex = selectedRange.location
+            
+            // Get character at cursor
+            guard charIndex < string.length else { return }
+            let char = string.character(at: charIndex)
+            let charStr = String(Character(UnicodeScalar(char)!))
+            
+            // Define bracket pairs
+            let bracketPairs: [(String, String)] = [
+                ("(", ")"),
+                ("[", "]"),
+                ("{", "}"),
+                ("<", ">")
+            ]
+            
+            var openingBracket: String?
+            var closingBracket: String?
+            var searchDirection: Int = 0 // 1 = forward, -1 = backward
+            var bracketIndex: Int = -1 // Position of bracket to match
+            
+            // Check if cursor is on an opening bracket
+            for (open, close) in bracketPairs {
+                if charStr == open {
+                    openingBracket = open
+                    closingBracket = close
+                    searchDirection = 1
+                    bracketIndex = charIndex
+                    break
+                } else if charStr == close {
+                    openingBracket = open
+                    closingBracket = close
+                    searchDirection = -1
+                    bracketIndex = charIndex
+                    break
+                }
+            }
+            
+            // Also check character before cursor
+            if openingBracket == nil && charIndex > 0 {
+                let prevChar = string.character(at: charIndex - 1)
+                let prevCharStr = String(Character(UnicodeScalar(prevChar)!))
+                for (open, close) in bracketPairs {
+                    if prevCharStr == open {
+                        openingBracket = open
+                        closingBracket = close
+                        searchDirection = 1
+                        bracketIndex = charIndex - 1
+                        break
+                    } else if prevCharStr == close {
+                        openingBracket = open
+                        closingBracket = close
+                        searchDirection = -1
+                        bracketIndex = charIndex - 1
+                        break
+                    }
+                }
+            }
+            
+            guard let open = openingBracket, let close = closingBracket, bracketIndex >= 0 else { return }
+            
+            // Check if we're inside a string or comment (simplified check)
+            let syntaxMode = parent.syntaxMode
+            let isInString = isInsideString(at: bracketIndex, in: string, syntaxMode: syntaxMode)
+            let isInComment = isInsideComment(at: bracketIndex, in: string, syntaxMode: syntaxMode)
+            
+            if isInString || isInComment {
+                return // Don't match brackets inside strings/comments
+            }
+            
+            // Find matching bracket (skip strings and comments)
+            var matchRange: NSRange?
+            if searchDirection == 1 {
+                // Search forward for closing bracket
+                var depth = 1
+                var pos = bracketIndex + 1
+                var inString = false
+                var escapeNext = false
+                
+                while pos < string.length {
+                    let ch = string.character(at: pos)
+                    let chStr = String(Character(UnicodeScalar(ch)!))
+                    
+                    // Track string/comment state
+                    if !escapeNext {
+                        if chStr == "\"" {
+                            inString.toggle()
+                        } else if syntaxMode.lineComment.count > 0 && string.substring(with: NSRange(location: pos, length: min(syntaxMode.lineComment.count, string.length - pos))) == syntaxMode.lineComment && !inString {
+                            // Line comment starts here, skip to end of line
+                            let lineRange = string.lineRange(for: NSRange(location: pos, length: 0))
+                            pos = lineRange.location + lineRange.length - 1
+                            continue
+                        }
+                    }
+                    escapeNext = (chStr == "\\" && inString)
+                    
+                    if !inString {
+                        if chStr == open {
+                            depth += 1
+                        } else if chStr == close {
+                            depth -= 1
+                            if depth == 0 {
+                                matchRange = NSRange(location: pos, length: 1)
+                                break
+                            }
+                        }
+                    }
+                    pos += 1
+                }
+            } else {
+                // Search backward for opening bracket
+                var depth = 1
+                var pos = bracketIndex - 1
+                var inString = false
+                var escapeNext = false
+                
+                while pos >= 0 {
+                    let ch = string.character(at: pos)
+                    let chStr = String(Character(UnicodeScalar(ch)!))
+                    
+                    // Track string state (simplified backward search)
+                    if !escapeNext && chStr == "\"" {
+                        inString.toggle()
+                    }
+                    escapeNext = (chStr == "\\" && inString)
+                    
+                    if !inString {
+                        if chStr == close {
+                            depth += 1
+                        } else if chStr == open {
+                            depth -= 1
+                            if depth == 0 {
+                                matchRange = NSRange(location: pos, length: 1)
+                                break
+                            }
+                        }
+                    }
+                    pos -= 1
+                }
+            }
+            
+            // Highlight matching bracket
+            if let match = matchRange {
+                let highlightColor = NSColor.systemBlue.withAlphaComponent(0.3)
+                storage.addAttribute(.backgroundColor, value: highlightColor, range: match)
+                bracketMatchRange = match
+                tv.needsDisplay = true
+            }
+        }
+        
+        private func isInsideString(at index: Int, in string: NSString, syntaxMode: SyntaxMode) -> Bool {
+            var inString = false
+            var escapeNext = false
+            for i in 0..<min(index, string.length) {
+                let ch = string.character(at: i)
+                let chStr = String(Character(UnicodeScalar(ch)!))
+                if escapeNext {
+                    escapeNext = false
+                    continue
+                }
+                if chStr == "\\" {
+                    escapeNext = true
+                    continue
+                }
+                if chStr == "\"" {
+                    inString.toggle()
+                }
+            }
+            return inString
+        }
+        
+        private func isInsideComment(at index: Int, in string: NSString, syntaxMode: SyntaxMode) -> Bool {
+            let lineComment = syntaxMode.lineComment
+            if lineComment.isEmpty { return false }
+            
+            // Check if we're on a line that starts with a comment
+            let lineRange = string.lineRange(for: NSRange(location: index, length: 0))
+            let line = string.substring(with: lineRange)
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            return trimmed.hasPrefix(lineComment)
+        }
+        
+        private func updateCursorPosition() {
+            guard let tv = textView else { return }
+            let selectedRange = tv.selectedRange()
+            let position = selectedRange.location
+            let string = tv.string as NSString
+            
+            // Calculate line and column
+            var line = 1
+            var column = 1
+            var currentPos = 0
+            
+            string.enumerateSubstrings(in: NSRange(location: 0, length: min(position, string.length)), options: .byLines) { (_, _, enclosingRange, stop) in
+                if enclosingRange.location + enclosingRange.length <= position {
+                    line += 1
+                    currentPos = enclosingRange.location + enclosingRange.length
+                } else {
+                    stop.pointee = true
+                }
+            }
+            
+            // Calculate column within the line
+            if currentPos < position {
+                let lineRange = string.lineRange(for: NSRange(location: position, length: 0))
+                column = position - lineRange.location + 1
+            }
+            
+            parent.onCursorChange?(line, column, position)
         }
 
         func textView(_ textView: NSTextView, shouldChangeTextIn affectedCharRange: NSRange, replacementString: String?) -> Bool {
-            // Allow all edits for now
+            // Allow all edits
             return true
         }
         
@@ -822,9 +1058,13 @@ struct CocoaTextView: NSViewRepresentable {
         // Ensure typing attributes keep a dynamic foreground color in Rich Text when appropriate
         func textViewDidChangeTypingAttributes(_ notification: Notification) {
             guard let tv = textView else { return }
-            // Only care in Rich Text mode
-            guard parent.isRichText else { return }
-
+            
+            // Prevent infinite recursion - if we're already updating typing attributes, skip
+            guard !isUpdatingTypingAttributes else { return }
+            isUpdatingTypingAttributes = true
+            defer { isUpdatingTypingAttributes = false }
+            
+            // Rich Text mode handling
             // Determine whether current content has explicit foreground colors
             var hasExplicitFG = false
             if let storage = tv.textStorage {
@@ -841,7 +1081,7 @@ struct CocoaTextView: NSViewRepresentable {
                     tv.typingAttributes = typing
                 }
             } else {
-                // Keep dynamic label color so text follows the theme; also correct hard black in Dark mode
+                // Keep dynamic label color so text follows the system appearance
                 var typing = tv.typingAttributes
                 let isDark = tv.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
                 let currentFG = typing[.foregroundColor] as? NSColor
@@ -850,7 +1090,7 @@ struct CocoaTextView: NSViewRepresentable {
                     typing[.foregroundColor] = desired
                     tv.typingAttributes = typing
                 }
-                // Keep the caret visible and matching theme (cosmetic)
+                // Keep the caret visible
                 tv.insertionPointColor = desired
             }
         }

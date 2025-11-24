@@ -10,7 +10,10 @@ class Document: Identifiable, ObservableObject {
     @Published var syntaxMode: SyntaxMode
     @Published var encoding: String = "UTF-8"
     @Published var cursorPosition: Int = 0
+    @Published var cursorLine: Int = 1
+    @Published var cursorColumn: Int = 1
     @Published var isModified: Bool = false
+    @Published var modificationDate: Date?
     // Transient rich text content for runtime display (not persisted)
     @Published var attributedContent: NSAttributedString?
     
@@ -41,9 +44,50 @@ class Document: Identifiable, ObservableObject {
     func load() throws {
         guard let path = path, fileManager.fileExists(atPath: path.path) else { return }
         
-        content = try String(contentsOf: path, encoding: .utf8)
+        // Try to detect encoding
+        var detectedEncoding: String.Encoding = .utf8
+        if let data = try? Data(contentsOf: path) {
+            // Try common encodings in order
+            if let string = String(data: data, encoding: .utf8) {
+                content = string
+                detectedEncoding = .utf8
+            } else if let string = String(data: data, encoding: .utf16) {
+                content = string
+                detectedEncoding = .utf16
+            } else if let string = String(data: data, encoding: .macOSRoman) {
+                content = string
+                detectedEncoding = .macOSRoman
+            } else if let string = String(data: data, encoding: .isoLatin1) {
+                content = string
+                detectedEncoding = .isoLatin1
+            } else {
+                // Fallback to UTF-8
+                content = try String(contentsOf: path, encoding: .utf8)
+                detectedEncoding = .utf8
+            }
+        } else {
+            content = try String(contentsOf: path, encoding: .utf8)
+        }
+        
+        // Set encoding string
+        switch detectedEncoding {
+        case .utf8: encoding = "UTF-8"
+        case .utf16: encoding = "UTF-16"
+        case .macOSRoman: encoding = "MacRoman"
+        case .ascii: encoding = "ASCII"
+        case .isoLatin1: encoding = "ISO-8859-1"
+        case .windowsCP1252: encoding = "Windows-1252"
+        default: encoding = "UTF-8"
+        }
+        
         name = path.lastPathComponent
         isModified = false
+        
+        // Get modification date
+        if let attributes = try? fileManager.attributesOfItem(atPath: path.path),
+           let modDate = attributes[.modificationDate] as? Date {
+            modificationDate = modDate
+        }
         
         // Detect syntax mode from extension
         if let detectedMode = SyntaxMode.from(path: path) {
@@ -71,7 +115,19 @@ extension SyntaxMode {
             return .html
         case "css":
             return .css
+        case "ts", "tsx":
+            return .typescript
+        case "md", "markdown", "mdown", "mkd":
+            return .markdown
+        case "yaml", "yml":
+            return .yaml
+        case "xml", "xsd", "xsl", "xslt":
+            return .xml
+        case "sh", "bash", "zsh", "fish", "csh", "ksh":
+            return .shell
         default:
+            // Custom syntax modes are handled separately in highlighting
+            // Return nil to indicate no built-in mode matched
             return nil
         }
     }

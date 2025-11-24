@@ -26,6 +26,7 @@ struct TextView: View {
             isRichText: isRichText,
             attributed: isRichText ? document.attributedContent : nil,
             syntaxMode: document.syntaxMode,
+            fileExtension: document.path?.pathExtension,
             lintingEnabled: lintingEnabled,
             goToDefinitionEnabled: goToDefinitionEnabled,
             linter: linter,
@@ -43,6 +44,14 @@ struct TextView: View {
                 if isRichText {
                     document.attributedContent = newAttr
                     document.isModified = true
+                }
+            },
+            onCursorChange: { line, column, position in
+                // Defer updates to avoid publishing during view updates
+                Task { @MainActor in
+                    document.cursorLine = line
+                    document.cursorColumn = column
+                    document.cursorPosition = position
                 }
             }
         )

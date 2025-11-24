@@ -51,24 +51,37 @@ struct ContentView: View {
         if isHighContrast { return Color.white.opacity(0.35) }
         return Color.accentColor.opacity(0.15)
     }
+    private var headerTextColor: Color {
+        if isSepia { return Color(nsColor: NSColor(calibratedRed: 0.15, green: 0.1, blue: 0.05, alpha: 1.0)) } // Very dark brown for sepia
+        if isHighContrast { return Color.white.opacity(0.95) } // Bright white for high contrast dark background
+        return Color.primary // Default system color
+    }
 
     var body: some View {
         HStack(spacing: 0) {
             // Sidebar
             VStack(alignment: .leading, spacing: 0) {
                 // File Browser header bar
-                HStack {
-                    Spacer()
-                    Text("File Browser")
-                        .font(.headline)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.primary)
-                    Spacer()
+                ZStack {
+                    // Background layer
+                    if isSepia || isHighContrast {
+                        headerBgColor
+                    } else {
+                        Color(nsColor: .controlBackgroundColor)
+                    }
+                    
+                    // Text layer on top
+                    HStack {
+                        Spacer()
+                        Text("File Browser")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(headerTextColor)
+                        Spacer()
+                    }
                 }
                 .frame(height: 40)
                 .frame(maxWidth: .infinity)
-                .background(.bar)
-                .overlay((isSepia || isHighContrast) ? headerBgColor : Color.clear)
                 
                 Divider()
                 

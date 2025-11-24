@@ -3,6 +3,7 @@ import SwiftUI
 import Combine
 import AppKit
 import UniformTypeIdentifiers
+import Darwin
 
 class AppState: ObservableObject {
     // Shared instance so Commands and App-level handlers can reach the same state
@@ -61,7 +62,30 @@ class AppState: ObservableObject {
             }
             let (attr, plain) = Self.loadRichIfAvailable(from: target)
             let syntax = SyntaxMode.from(path: target) ?? .swift
-            addDocument(name: target.lastPathComponent, content: plain, path: target, syntaxMode: syntax, attributedContent: attr)
+            let doc = Document(name: target.lastPathComponent, content: plain, path: target, syntaxMode: syntax, attributedContent: attr)
+            
+            // Set modification date and encoding
+            let fileManager = FileManager.default
+            if let attributes = try? fileManager.attributesOfItem(atPath: target.path),
+               let modDate = attributes[.modificationDate] as? Date {
+                doc.modificationDate = modDate
+            }
+            
+            // Detect encoding
+            if let data = try? Data(contentsOf: target) {
+                if String(data: data, encoding: .utf8) != nil {
+                    doc.encoding = "UTF-8"
+                } else if String(data: data, encoding: .utf16) != nil {
+                    doc.encoding = "UTF-16"
+                } else if String(data: data, encoding: .macOSRoman) != nil {
+                    doc.encoding = "MacRoman"
+                } else if String(data: data, encoding: .isoLatin1) != nil {
+                    doc.encoding = "ISO-8859-1"
+                }
+            }
+            
+            documents.append(doc)
+            selectedTab = doc.id
         }
     }
 
@@ -134,11 +158,58 @@ class AppState: ObservableObject {
             do {
                 try write(document, to: url, as: type)
                 document.isModified = false
+                // Update modification date after save
+                let fileManager = FileManager.default
+                if let attributes = try? fileManager.attributesOfItem(atPath: url.path),
+                   let modDate = attributes[.modificationDate] as? Date {
+                    document.modificationDate = modDate
+                }
                 return true
             } catch {
                 let alert = NSAlert()
                 alert.messageText = "Failed to Save"
-                alert.informativeText = error.localizedDescription
+                
+                // Provide better error messages
+                var errorMessage = error.localizedDescription
+                let nsError = error as NSError
+                
+                // Check for specific error types
+                if nsError.domain == NSCocoaErrorDomain {
+                    switch nsError.code {
+                    case NSFileWriteNoPermissionError:
+                        errorMessage = "You don't have permission to write to this file. Please check the file permissions or save to a different location."
+                    case NSFileWriteFileExistsError:
+                        errorMessage = "A file with this name already exists. Please choose a different name."
+                    case NSFileWriteVolumeReadOnlyError:
+                        errorMessage = "The volume is read-only. Please save to a writable location."
+                    default:
+                        break
+                    }
+                } else if nsError.domain == NSPOSIXErrorDomain {
+                    let errorCode = Int32(nsError.code)
+                    if errorCode == EACCES {
+                        errorMessage = "Permission denied. You don't have write access to this location."
+                    } else if errorCode == ENOSPC {
+                        errorMessage = "No space left on device. Please free up disk space and try again."
+                    } else if errorCode == EROFS {
+                        errorMessage = "Read-only file system. Please save to a writable location."
+                    }
+                }
+                
+                // Check if it's a network volume error
+                if url.startAccessingSecurityScopedResource() {
+                    url.stopAccessingSecurityScopedResource()
+                }
+                
+                // Check if path is on network volume
+                if url.pathComponents.contains("Volumes") {
+                    let volumePath = "/Volumes/\(url.pathComponents[url.pathComponents.firstIndex(of: "Volumes")! + 1])"
+                    if !FileManager.default.isWritableFile(atPath: volumePath) {
+                        errorMessage = "Network volume is not writable or disconnected. Please check your network connection and try again."
+                    }
+                }
+                
+                alert.informativeText = errorMessage
                 alert.alertStyle = .warning
                 alert.addButton(withTitle: "OK")
                 alert.runModal()
@@ -161,7 +232,23 @@ class AppState: ObservableObject {
         } catch {
             let alert = NSAlert()
             alert.messageText = "Failed to Save"
-            alert.informativeText = error.localizedDescription
+            
+            // Provide better error messages
+            var errorMessage = error.localizedDescription
+            let nsError = error as NSError
+            
+            if nsError.domain == NSCocoaErrorDomain {
+                switch nsError.code {
+                case NSFileWriteNoPermissionError:
+                    errorMessage = "You don't have permission to write to this location. Please choose a different location."
+                case NSFileWriteVolumeReadOnlyError:
+                    errorMessage = "The selected location is read-only. Please choose a writable location."
+                default:
+                    break
+                }
+            }
+            
+            alert.informativeText = errorMessage
             alert.alertStyle = .warning
             alert.addButton(withTitle: "OK")
             alert.runModal()
