@@ -10,7 +10,11 @@ struct PreferencesRootView: View {
         case "dark": return .dark
         case "sepia": return .light
         case "highcontrast": return .dark
-        default: return nil
+        // Additional macOS themes – map to a base scheme so the UI updates.
+        case "graphite": return .dark
+        case "vibrant-light": return .light
+        case "vibrant-dark": return .dark
+        default: return nil // custom themes are handled by ThemeManager without forcing a scheme
         }
     }
     
@@ -116,6 +120,18 @@ private struct ApplicationPreferencesView: View {
                     Text("High Contrast").tag("highcontrast")
                 }
                 .pickerStyle(.segmented)
+
+                // Additional macOS themes not covered by the segmented picker.
+                // Each button directly sets the stored theme string.
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Additional Themes").font(.subheadline).foregroundStyle(.secondary)
+                    HStack(spacing: 8) {
+                        Button("Graphite") { theme = "graphite" }
+                        Button("Vibrant Light") { theme = "vibrant-light" }
+                        Button("Vibrant Dark") { theme = "vibrant-dark" }
+                    }
+                }
+                .padding(.top, 4)
             }
 
             Divider().padding(.vertical, 6)
