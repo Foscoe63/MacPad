@@ -227,11 +227,19 @@ struct CocoaTextView: NSViewRepresentable {
         // IMPORTANT: In Rich mode with attributed content, do NOT overwrite the text storage
         // with plain `string`, or you will lose colors and attributes.
         var stringWasUpdated = false
+        // Preserve user selection during copy operations. If the text view is the first
+        // responder and a range is selected, we skip overwriting the underlying string.
+        // This prevents the highlight from being cleared by a SwiftUI update that would
+        // otherwise replace `textView.string`.
         if textView.string != text {
             let shouldOverwritePlain = !isRichText || (isRichText && attributed == nil)
             if shouldOverwritePlain {
-                textView.string = text
-                stringWasUpdated = true
+                let isFirstResponder = textView.window?.firstResponder === textView
+                let hasSelection = textView.selectedRange().length > 0
+                if !(isFirstResponder && hasSelection) {
+                    textView.string = text
+                    stringWasUpdated = true
+                }
             }
         }
 
@@ -662,6 +670,20 @@ struct CocoaTextView: NSViewRepresentable {
                 return 
             }
             
+            // Skip highlighting if user is actively selecting text to avoid clearing selection
+            if let tv = textView, tv.selectedRange().length > 0 {
+                // Defer highlighting until selection is cleared
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+                    guard let self = self,
+                          let tv = self.textView,
+                          tv.selectedRange().length == 0, // Only apply if selection is cleared
+                          let storage = tv.textStorage,
+                          storage.length > 0 else { return }
+                    self.applySyntaxHighlighting(to: storage, syntaxMode: syntaxMode)
+                }
+                return
+            }
+            
             let text = storage.string
             var appliedCount = 0
             
@@ -707,9 +729,8 @@ struct CocoaTextView: NSViewRepresentable {
                             let nsRange = match.range
                             if nsRange.location != NSNotFound && 
                                nsRange.location + nsRange.length <= storage.length {
-                                // Use setAttributes to ensure it overrides any existing color
-                                let attrs: [NSAttributedString.Key: Any] = [.foregroundColor: nsColor]
-                                storage.setAttributes(attrs, range: nsRange)
+                                // Use addAttribute instead of setAttributes to preserve other attributes
+                                storage.addAttribute(.foregroundColor, value: nsColor, range: nsRange)
                                 coloredRanges.insert(nsRange)
                                 appliedCount += 1
                                 patternMatches += 1
@@ -769,8 +790,11 @@ struct CocoaTextView: NSViewRepresentable {
             
             storage.endEditing()
             
-            // Force the text view to redraw
-            textView?.needsDisplay = true
+            // Force the text view to redraw, but only if there's no active selection
+            // to avoid clearing the user's selection
+            if let tv = textView, tv.selectedRange().length == 0 {
+                tv.needsDisplay = true
+            }
             
             // Verify colors were applied
             var verifiedCount = 0
@@ -812,10 +836,15 @@ struct CocoaTextView: NSViewRepresentable {
             }
             
             // Apply syntax highlighting if not in rich text mode
-            // Always reapply on text change to keep highlighting up to date
+            // Skip if user is actively selecting text to avoid clearing selection
             if !parent.isRichText, let storage = tv.textStorage, storage.length > 0 {
-                applySyntaxHighlighting(to: storage, syntaxMode: parent.syntaxMode)
-                lastAppliedSyntaxMode = parent.syntaxMode
+                let selectedRange = tv.selectedRange()
+                if selectedRange.length == 0 {
+                    // No selection - safe to apply highlighting immediately
+                    applySyntaxHighlighting(to: storage, syntaxMode: parent.syntaxMode)
+                    lastAppliedSyntaxMode = parent.syntaxMode
+                }
+                // If there's a selection, highlighting will be deferred until selection clears
             }
         }
 

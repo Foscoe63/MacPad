@@ -37,6 +37,8 @@ struct ToolbarView: View {
                     .help("Copy")
                 Button(action: paste) { Image(systemName: "doc.on.clipboard").foregroundStyle(.green) }
                     .help("Paste")
+                Button(action: selectAll) { Image(systemName: "text.cursor").foregroundStyle(.cyan) }
+                    .help("Select All")
                 Divider()
             }
             
@@ -166,6 +168,7 @@ struct ToolbarView: View {
     private func cut() { performResponderAction(#selector(NSText.cut(_:))) }
     private func copyText() { performResponderAction(#selector(NSText.copy(_:))) }
     private func paste() { performResponderAction(#selector(NSText.paste(_:))) }
+    private func selectAll() { performResponderAction(#selector(NSText.selectAll(_:))) }
     private func undo() { performResponderAction(Selector(("undo:"))) }
     private func redo() { performResponderAction(Selector(("redo:"))) }
 

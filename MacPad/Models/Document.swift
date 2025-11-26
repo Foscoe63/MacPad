@@ -102,6 +102,13 @@ extension SyntaxMode {
     static func from(path: URL) -> SyntaxMode? {
         let ext = path.pathExtension.lowercased()
         
+        // Check for custom syntax modes first
+        if CustomSyntaxModeManager.shared.customModeForExtension(ext) != nil {
+            // Custom mode exists - return nil so Document defaults to .swift
+            // The actual highlighting will use the custom mode patterns via fileExtension
+            return nil
+        }
+        
         switch ext {
         case "swift":
             return .swift
@@ -126,8 +133,7 @@ extension SyntaxMode {
         case "sh", "bash", "zsh", "fish", "csh", "ksh":
             return .shell
         default:
-            // Custom syntax modes are handled separately in highlighting
-            // Return nil to indicate no built-in mode matched
+            // No built-in mode matched
             return nil
         }
     }

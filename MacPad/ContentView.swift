@@ -86,7 +86,7 @@ struct ContentView: View {
                 // File Browser header bar
                 ZStack {
                     // Background layer
-                    if isSepia || isHighContrast {
+                    if isSepia || isHighContrast || isGraphite || isVibrantLight || isVibrantDark {
                         headerBgColor
                     } else {
                         Color(nsColor: .controlBackgroundColor)
