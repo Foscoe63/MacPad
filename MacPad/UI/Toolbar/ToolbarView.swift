@@ -300,7 +300,32 @@ struct ToolbarView: View {
 
     // MARK: - Font style helpers
     private func focusedTextView() -> NSTextView? {
-        return NSApp.keyWindow?.firstResponder as? NSTextView
+        // Try to get the first responder as NSTextView
+        if let textView = NSApp.keyWindow?.firstResponder as? NSTextView {
+            return textView
+        }
+        
+        // If that doesn't work, try to find it in the key window's view hierarchy
+        // This is needed because in SwiftUI with NSViewRepresentable, the first responder
+        // might be the scroll view or another wrapper view
+        if let window = NSApp.keyWindow,
+           let contentView = window.contentView {
+            // Search for NSTextView in the view hierarchy
+            func findTextView(in view: NSView) -> NSTextView? {
+                if let textView = view as? NSTextView {
+                    return textView
+                }
+                for subview in view.subviews {
+                    if let textView = findTextView(in: subview) {
+                        return textView
+                    }
+                }
+                return nil
+            }
+            return findTextView(in: contentView)
+        }
+        
+        return nil
     }
 
     private func syncFontTogglesFromSelection() {
@@ -383,21 +408,56 @@ struct ToolbarView: View {
 
     // MARK: - Color palette actions
     private func applyChosenColor() {
-        guard isRichText else { return }
-        guard let tv = focusedTextView() else { return }
+        guard isRichText else { 
+            print("[ColorPicker] Rich text mode not enabled")
+            return 
+        }
+        guard let tv = focusedTextView() else { 
+            print("[ColorPicker] Could not find focused text view")
+            return 
+        }
+        guard let doc = appState.getDocument(id: appState.selectedTab) else { 
+            print("[ColorPicker] Could not find document")
+            return 
+        }
+        guard let storage = tv.textStorage else {
+            print("[ColorPicker] Text storage is nil")
+            return
+        }
+        
         let nsColor = NSColor(chosenColor)
         let range = tv.selectedRange
-        tv.textStorage?.beginEditing()
+        print("[ColorPicker] Applying color \(nsColor) to range: \(range)")
+        
+        storage.beginEditing()
         if range.length > 0 {
-            tv.textStorage?.addAttribute(.foregroundColor, value: nsColor, range: range)
+            storage.addAttribute(.foregroundColor, value: nsColor, range: range)
+            print("[ColorPicker] Applied color to selection (length: \(range.length))")
+        } else {
+            print("[ColorPicker] No selection - applying to typing attributes only")
         }
-        tv.textStorage?.endEditing()
+        storage.endEditing()
+        
         if applyColorToTyping {
             var attrs = tv.typingAttributes
             attrs[.foregroundColor] = nsColor
             tv.typingAttributes = attrs
+            print("[ColorPicker] Updated typing attributes")
         }
+        
+        // Force immediate display update
         tv.setNeedsDisplay(tv.bounds)
+        tv.displayIfNeeded()
+        
+        // CRITICAL: Update document's attributedContent immediately so updateNSView doesn't overwrite the color change
+        // Use async to ensure this happens after the text storage update is complete
+        DispatchQueue.main.async {
+            let fullRange = NSRange(location: 0, length: storage.length)
+            let updatedAttributed = storage.attributedSubstring(from: fullRange)
+            doc.attributedContent = updatedAttributed
+            doc.isModified = true
+            print("[ColorPicker] Updated document attributedContent")
+        }
     }
 }
 

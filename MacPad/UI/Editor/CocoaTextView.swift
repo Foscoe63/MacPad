@@ -63,16 +63,19 @@ struct CocoaTextView: NSViewRepresentable {
         textView.isAutomaticSpellingCorrectionEnabled = false
         textView.isEditable = true
         textView.isSelectable = true
-        // Disable adaptive color mapping for plain text mode when using themes
-        // This prevents NSTextView from automatically flipping colors based on appearance
+        // Configure adaptive color mapping
+        // For plain text mode, we'll use adaptive mapping AND manually set colors
+        // For rich text mode, disable ONLY when attributed content contains explicit colors to preserve
         if !isRichText {
-            // Plain text mode: always disable adaptive mapping so theme colors stay consistent
-            textView.usesAdaptiveColorMappingForDarkAppearance = false
+            // Plain text mode: enable adaptive mapping AND set explicit colors
+            textView.usesAdaptiveColorMappingForDarkAppearance = true
+            // Set colors immediately
+            textView.textColor = NSColor.textColor
+            textView.backgroundColor = NSColor.textBackgroundColor
         } else {
-            // Rich text mode: disable ONLY when attributed content contains explicit colors to preserve
-            let hasExplicitFG = (attributed != nil) ? mpAttributedHasExplicitForegroundColor(attributed!) : false
-            let shouldDisableAdaptive = (attributed != nil) && hasExplicitFG
-            textView.usesAdaptiveColorMappingForDarkAppearance = shouldDisableAdaptive ? false : true
+            // Rich text mode: disable adaptive mapping to ensure user colors are respected
+            // We handle default colors manually
+            textView.usesAdaptiveColorMappingForDarkAppearance = false
         }
         textView.usesFindBar = true
         textView.allowsUndo = true
@@ -97,6 +100,22 @@ struct CocoaTextView: NSViewRepresentable {
 
         // Text container formatting
         textView.textContainerInset = NSSize(width: 8, height: 8)
+        
+        // CRITICAL: Set text color for plain text mode using explicit colors
+        // Use white text on dark background in dark mode, black on white in light mode
+        if !isRichText {
+            let isDark = mpIsDarkMode()
+            let fg = isDark ? NSColor.white : NSColor.black
+            let bg = isDark ? NSColor(white: 0.1, alpha: 1.0) : NSColor.white
+            textView.textColor = fg
+            textView.backgroundColor = bg
+            textView.appearance = NSApp.effectiveAppearance
+            // Set typing attributes immediately so new text gets the right color
+            var typing = textView.typingAttributes
+            typing[.foregroundColor] = fg
+            textView.typingAttributes = typing
+        }
+        
         applyTypography(textView, coordinator: context.coordinator)
         context.coordinator.baseInset = NSSize(width: 8, height: 8)
 
@@ -104,35 +123,70 @@ struct CocoaTextView: NSViewRepresentable {
         if isRichText, let attributed = attributed {
             textView.textStorage?.setAttributedString(attributed)
             context.coordinator.appliedInitialAttributed = true
+            context.coordinator.lastAssignedAttributed = attributed
             
-            // Always check for hard black colors and replace them in dark mode
+            // CRITICAL: In rich text mode, replace ALL colors in dark mode to ensure visibility
             let isDark = mpIsDarkMode()
-            let fg = textView.textColor ?? NSColor.labelColor
+            // Use explicit white in dark mode, black in light mode (not labelColor which might be wrong)
+            let fg = isDark ? NSColor.white : NSColor.black
+            let bg = isDark ? NSColor(white: 0.1, alpha: 1.0) : NSColor.white
+            
+            // Set background color
+            textView.backgroundColor = bg
+            textView.appearance = NSApp.effectiveAppearance
             
             if let storage = textView.textStorage {
                 storage.beginEditing()
                 let fullRange = NSRange(location: 0, length: storage.length)
                 
-                // In dark mode, be aggressive: replace all black/dark colors with labelColor
-                if isDark {
-                    storage.enumerateAttribute(.foregroundColor, in: fullRange, options: []) { value, range, _ in
-                        if let color = value as? NSColor {
-                            if mpIsHardBlack(color) {
-                                storage.addAttribute(.foregroundColor, value: fg, range: range)
-                            }
-                        } else {
-                            // No color set - apply labelColor
+                // Only replace hard black colors and apply to uncolored text
+                // This preserves user-selected colors (though in initial setup, we may not have any yet)
+                storage.enumerateAttribute(.foregroundColor, in: fullRange, options: []) { value, range, _ in
+                    if let color = value as? NSColor {
+                        // Only replace hard black colors, preserve all other colors (including user-selected)
+                        if mpIsHardBlack(color) {
+                            storage.removeAttribute(.foregroundColor, range: range)
                             storage.addAttribute(.foregroundColor, value: fg, range: range)
                         }
+                        // Otherwise, keep the existing color (user-selected colors are preserved)
+                    } else {
+                        // No color set - apply default color
+                        storage.addAttribute(.foregroundColor, value: fg, range: range)
                     }
-                } else {
-                    // Light mode: only apply if no colors exist
-                    var hasColors = false
-                    storage.enumerateAttribute(.foregroundColor, in: fullRange, options: []) { _, _, _ in
-                        hasColors = true
+                }
+                // Also handle any ranges that don't have a color attribute at all
+                var currentPos = 0
+                while currentPos < storage.length {
+                    var rangeHasColor = false
+                    let checkRange = NSRange(location: currentPos, length: 1)
+                    storage.enumerateAttribute(.foregroundColor, in: checkRange, options: []) { value, _, stop in
+                        if value != nil {
+                            rangeHasColor = true
+                            stop.pointee = true
+                        }
                     }
-                    if !hasColors {
-                        storage.addAttribute(.foregroundColor, value: fg, range: fullRange)
+                    if !rangeHasColor {
+                        // Find the extent of this uncolored range
+                        var uncoloredLength = 1
+                        while currentPos + uncoloredLength < storage.length {
+                            let nextRange = NSRange(location: currentPos + uncoloredLength, length: 1)
+                            var nextHasColor = false
+                            storage.enumerateAttribute(.foregroundColor, in: nextRange, options: []) { value, _, stop in
+                                if value != nil {
+                                    nextHasColor = true
+                                    stop.pointee = true
+                                }
+                            }
+                            if nextHasColor {
+                                break
+                            }
+                            uncoloredLength += 1
+                        }
+                        let uncoloredRange = NSRange(location: currentPos, length: uncoloredLength)
+                        storage.addAttribute(.foregroundColor, value: fg, range: uncoloredRange)
+                        currentPos += uncoloredLength
+                    } else {
+                        currentPos += 1
                     }
                 }
                 
@@ -143,32 +197,162 @@ struct CocoaTextView: NSViewRepresentable {
             var typing = textView.typingAttributes
             typing[.foregroundColor] = fg
             textView.typingAttributes = typing
+            textView.textColor = fg
         } else {
             textView.string = text
-            // In Rich Text mode without pre-supplied attributed content, ensure typing uses dynamic label color
+            // In Rich Text mode without pre-supplied attributed content, use explicit colors
             if isRichText {
-                let fg = textView.textColor ?? NSColor.labelColor
+                let isDark = mpIsDarkMode()
+                let fg = isDark ? NSColor.white : NSColor.black
+                let bg = isDark ? NSColor(white: 0.1, alpha: 1.0) : NSColor.white
+                
+                textView.textColor = fg
+                textView.backgroundColor = bg
+                textView.appearance = NSApp.effectiveAppearance
+                
                 var typing = textView.typingAttributes
                 typing[.foregroundColor] = fg
                 textView.typingAttributes = typing
                 
-                // Apply color to existing text
-                if let storage = textView.textStorage {
+                // Apply color to existing text - only replace hard black colors
+                // This preserves user-selected colors
+                if let storage = textView.textStorage, storage.length > 0 {
                     storage.beginEditing()
-                    storage.addAttribute(.foregroundColor, value: fg, range: NSRange(location: 0, length: storage.length))
-                    storage.endEditing()
-                }
-                } else {
-                    // Plain text mode: theme colors are already applied in applyTheme() above
-                    // Apply syntax highlighting for plain text mode
-                    // Use async to ensure text storage is ready
-                    DispatchQueue.main.async {
-                        if let storage = textView.textStorage, storage.length > 0 {
-                            context.coordinator.applySyntaxHighlighting(to: storage, syntaxMode: syntaxMode)
-                            context.coordinator.lastAppliedSyntaxMode = syntaxMode
+                    let fullRange = NSRange(location: 0, length: storage.length)
+                    // Only replace hard black colors and apply to uncolored text
+                    // This preserves user-selected colors
+                    storage.enumerateAttribute(.foregroundColor, in: fullRange, options: []) { value, range, _ in
+                        if let color = value as? NSColor {
+                            // Only replace hard black colors, preserve all other colors (including user-selected)
+                            if mpIsHardBlack(color) {
+                                storage.removeAttribute(.foregroundColor, range: range)
+                                storage.addAttribute(.foregroundColor, value: fg, range: range)
+                            }
+                            // Otherwise, keep the existing color (user-selected colors are preserved)
+                        } else {
+                            // No color set - apply default color
+                            storage.addAttribute(.foregroundColor, value: fg, range: range)
                         }
                     }
+                    // Also handle any ranges that don't have a color attribute at all
+                    var currentPos = 0
+                    while currentPos < storage.length {
+                        var rangeHasColor = false
+                        let checkRange = NSRange(location: currentPos, length: 1)
+                        storage.enumerateAttribute(.foregroundColor, in: checkRange, options: []) { value, _, stop in
+                            if value != nil {
+                                rangeHasColor = true
+                                stop.pointee = true
+                            }
+                        }
+                        if !rangeHasColor {
+                            // Find the extent of this uncolored range
+                            var uncoloredLength = 1
+                            while currentPos + uncoloredLength < storage.length {
+                                let nextRange = NSRange(location: currentPos + uncoloredLength, length: 1)
+                                var nextHasColor = false
+                                storage.enumerateAttribute(.foregroundColor, in: nextRange, options: []) { value, _, stop in
+                                    if value != nil {
+                                        nextHasColor = true
+                                        stop.pointee = true
+                                    }
+                                }
+                                if nextHasColor {
+                                    break
+                                }
+                                uncoloredLength += 1
+                            }
+                            let uncoloredRange = NSRange(location: currentPos, length: uncoloredLength)
+                            storage.addAttribute(.foregroundColor, value: fg, range: uncoloredRange)
+                            currentPos += uncoloredLength
+                        } else {
+                            currentPos += 1
+                        }
+                    }
+                    storage.endEditing()
                 }
+            } else {
+                // Plain text mode: completely rebuild text storage with correct colors
+                // This ensures no black colors are left behind
+                let isDark = mpIsDarkMode()
+                // Use explicit colors that we know work
+                let fg = isDark ? NSColor.white : NSColor.black
+                // CRITICAL: Use a dark background in dark mode, light in light mode
+                let bg = isDark ? NSColor(white: 0.1, alpha: 1.0) : NSColor.white
+                
+                // CRITICAL: Set colors BEFORE setting string
+                textView.textColor = fg
+                textView.backgroundColor = bg
+                // Ensure the text view uses the correct appearance
+                textView.appearance = NSApp.effectiveAppearance
+                
+                // Set typing attributes so new text gets the right color
+                var typing = textView.typingAttributes
+                typing[.foregroundColor] = fg
+                textView.typingAttributes = typing
+                
+                // Set the string
+                textView.string = text
+                
+                // CRITICAL: Completely rebuild the text storage with a fresh attributed string
+                // This ensures no old color attributes remain
+                if let storage = textView.textStorage {
+                    // Create a completely new attributed string with ONLY the correct color
+                    let attributedText = NSMutableAttributedString(string: text)
+                    let fullRange = NSRange(location: 0, length: attributedText.length)
+                    
+                    // Set ONLY the foreground color - no other attributes
+                    attributedText.addAttribute(.foregroundColor, value: fg, range: fullRange)
+                    
+                    // Debug: print what color we're using
+                    print("[CocoaTextView] Setting text color in \(isDark ? "DARK" : "LIGHT") mode: \(fg)")
+                    print("[CocoaTextView] Background color: \(bg)")
+                    print("[CocoaTextView] textView.textColor: \(textView.textColor?.description ?? "nil")")
+                    
+                    // Replace the entire text storage - this should remove ALL old attributes
+                    storage.beginEditing()
+                    storage.setAttributedString(attributedText)
+                    storage.endEditing()
+                    
+                    // Verify the color was set
+                    if storage.length > 0 {
+                        if let actualColor = storage.attribute(.foregroundColor, at: 0, effectiveRange: nil) as? NSColor {
+                            print("[CocoaTextView] Actual color in storage: \(actualColor)")
+                        }
+                    }
+                    
+                    // Force a redraw
+                    textView.needsDisplay = true
+                    textView.needsLayout = true
+                }
+                
+                // Apply syntax highlighting for plain text mode
+                // Use async to ensure text storage is ready, but AFTER we've set the base color
+                DispatchQueue.main.async {
+                    // Ensure textColor is still set correctly before applying syntax highlighting
+                    let isDark = mpIsDarkMode()
+                    let fg = isDark ? NSColor.white : NSColor.black
+                    let bg = isDark ? NSColor(white: 0.1, alpha: 1.0) : NSColor.white
+                    if textView.textColor != fg {
+                        textView.textColor = fg
+                    }
+                    textView.backgroundColor = bg
+                    textView.appearance = NSApp.effectiveAppearance
+                    
+                    if let storage = textView.textStorage, storage.length > 0 {
+                        // Ensure base color is applied before syntax highlighting
+                        storage.beginEditing()
+                        let fullRange = NSRange(location: 0, length: storage.length)
+                        storage.removeAttribute(.foregroundColor, range: fullRange)
+                        storage.addAttribute(.foregroundColor, value: fg, range: fullRange)
+                        storage.endEditing()
+                        
+                        // Now apply syntax highlighting (it will use the correct default color)
+                        context.coordinator.applySyntaxHighlighting(to: storage, syntaxMode: syntaxMode)
+                        context.coordinator.lastAppliedSyntaxMode = syntaxMode
+                    }
+                }
+            }
         }
 
         // Wrap in scroll view
@@ -180,6 +364,14 @@ struct CocoaTextView: NSViewRepresentable {
         scrollView.borderType = .noBorder
         scrollView.drawsBackground = true
         textView.drawsBackground = true
+        
+        // CRITICAL: Set background color for dark mode visibility
+        // Both scroll view and text view need dark backgrounds in dark mode
+        let isDark = mpIsDarkMode()
+        let bg = isDark ? NSColor(white: 0.1, alpha: 1.0) : NSColor.white
+        scrollView.backgroundColor = bg
+        textView.backgroundColor = bg
+        textView.appearance = NSApp.effectiveAppearance
         
         scrollView.documentView = textView
         
@@ -193,16 +385,19 @@ struct CocoaTextView: NSViewRepresentable {
         scrollView.verticalRulerView = nil
         scrollView.hasHorizontalRuler = false
 
-        // Make first responder when added
-        DispatchQueue.main.async {
-            textView.window?.makeFirstResponder(textView)
-        }
+        // Don't force first responder - let the user click to focus naturally
+        // This prevents interference with cursor movement and selection
         
         // Set up ⌘+click handling for Go to Definition using event monitoring
         if goToDefinitionEnabled {
             DispatchQueue.main.async {
                 context.coordinator.setupGoToDefinitionMonitoring(for: textView)
             }
+        }
+        
+        // Set up mouse tracking to detect when user is dragging to select
+        DispatchQueue.main.async {
+            context.coordinator.setupMouseTracking(for: textView)
         }
         
         return scrollView
@@ -213,32 +408,107 @@ struct CocoaTextView: NSViewRepresentable {
         // Prevent delegate feedback from mutating SwiftUI state during an update pass
         if context.coordinator.isUpdatingView { return }
         context.coordinator.isUpdatingView = true
-        defer { context.coordinator.isUpdatingView = false }
+        defer { 
+            context.coordinator.isUpdatingView = false
+            // CRITICAL: Always ensure text view remains selectable after any update
+            // This is essential for selection to work after editing
+            if !textView.isSelectable {
+                textView.isSelectable = true
+            }
+        }
 
         // Configure adaptive color mapping
-        // For rich text mode, disable ONLY when attributed content contains explicit colors
+        // For rich text mode, disable adaptive mapping and use explicit colors
         if isRichText {
-            let hasExplicitFG = (attributed != nil) ? mpAttributedHasExplicitForegroundColor(attributed!) : false
-            let shouldDisableAdaptive = (attributed != nil) && hasExplicitFG
-            textView.usesAdaptiveColorMappingForDarkAppearance = shouldDisableAdaptive ? false : true
+            textView.usesAdaptiveColorMappingForDarkAppearance = false
+            // Set explicit colors for rich text mode
+            let isDark = mpIsDarkMode()
+            // let fg = isDark ? NSColor.white : NSColor.black // Unused
+            let bg = isDark ? NSColor(white: 0.1, alpha: 1.0) : NSColor.white
+            // CRITICAL: Do NOT set textColor here for Rich Text, as it overrides user selection
+            // textView.textColor = fg 
+            textView.backgroundColor = bg
+            textView.appearance = NSApp.effectiveAppearance
+            nsView.backgroundColor = bg
+        } else {
+            // Plain text mode: use explicit colors for dark/light mode
+            textView.usesAdaptiveColorMappingForDarkAppearance = false
+            // Use explicit colors that we know work
+            let isDark = mpIsDarkMode()
+            let fg = isDark ? NSColor.white : NSColor.black
+            let bg = isDark ? NSColor(white: 0.1, alpha: 1.0) : NSColor.white
+            textView.textColor = fg
+            textView.backgroundColor = bg
+            textView.appearance = NSApp.effectiveAppearance
+            // Also set scroll view background to match
+            nsView.backgroundColor = bg
         }
 
         // Update string if external change
         // IMPORTANT: In Rich mode with attributed content, do NOT overwrite the text storage
         // with plain `string`, or you will lose colors and attributes.
-        var stringWasUpdated = false
-        // Preserve user selection during copy operations. If the text view is the first
-        // responder and a range is selected, we skip overwriting the underlying string.
-        // This prevents the highlight from being cleared by a SwiftUI update that would
-        // otherwise replace `textView.string`.
-        if textView.string != text {
+        // CRITICAL: Only update string if it's an external change (not from user typing)
+        // Never overwrite the text view's string if:
+        // 1. We're processing a text change from the text view (user is typing)
+        // 2. The text view is first responder (user is actively using it)
+        // 3. There's any selection (user might be selecting/copying)
+        if textView.string != text && !context.coordinator.isProcessingTextChange {
             let shouldOverwritePlain = !isRichText || (isRichText && attributed == nil)
             if shouldOverwritePlain {
                 let isFirstResponder = textView.window?.firstResponder === textView
                 let hasSelection = textView.selectedRange().length > 0
-                if !(isFirstResponder && hasSelection) {
+                // Be very conservative - only update if it's clearly an external change
+                // and the user is not actively interacting with the text view
+                if !isFirstResponder && !hasSelection && !context.coordinator.isMouseDown {
+                    // CRITICAL: Set textColor BEFORE setting string for plain text mode
+                    if !isRichText {
+                        let isDark = mpIsDarkMode()
+                        let fg = isDark ? NSColor.white : NSColor.black
+                        let bg = isDark ? NSColor(white: 0.1, alpha: 1.0) : NSColor.white
+                        textView.textColor = fg
+                        textView.backgroundColor = bg
+                        textView.appearance = NSApp.effectiveAppearance
+                    }
+                    
                     textView.string = text
-                    stringWasUpdated = true
+                    
+                    // Ensure plain text mode uses explicit colors for visibility
+                    if !isRichText {
+                        let isDark = mpIsDarkMode()
+                        let fg = isDark ? NSColor.white : NSColor.black
+                        let bg = isDark ? NSColor(white: 0.1, alpha: 1.0) : NSColor.white
+                        // Ensure textColor is still set (setting string might reset it)
+                        textView.textColor = fg
+                        textView.backgroundColor = bg
+                        textView.appearance = NSApp.effectiveAppearance
+                        
+                        // Set typing attributes
+                        var typing = textView.typingAttributes
+                        typing[.foregroundColor] = fg
+                        textView.typingAttributes = typing
+                        
+                        // Apply color to text storage - completely rebuild to remove ALL old attributes
+                        if let storage = textView.textStorage, storage.length > 0 {
+                            let savedSelection = textView.selectedRange()
+                            
+                        // Create a completely fresh attributed string with ONLY the correct color
+                        let isDark = mpIsDarkMode()
+                        let fg = isDark ? NSColor.white : NSColor.black
+                        let attributedText = NSMutableAttributedString(string: textView.string)
+                        let fullRange = NSRange(location: 0, length: attributedText.length)
+                        attributedText.addAttribute(.foregroundColor, value: fg, range: fullRange)
+                            
+                            // Replace entire storage - this removes ALL old attributes
+                            storage.beginEditing()
+                            storage.setAttributedString(attributedText)
+                            storage.endEditing()
+                            
+                            // Restore selection if it was valid
+                            if savedSelection.location <= storage.length {
+                                textView.setSelectedRange(savedSelection)
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -257,66 +527,51 @@ struct CocoaTextView: NSViewRepresentable {
             }
         }
         
-        // Apply typography updates if changed
-        applyTypography(textView, coordinator: context.coordinator)
+        // CRITICAL: Only apply typography updates if user is NOT actively typing
+        // Modifying text storage attributes resets cursor position and clears selection
+        let isFirstResponder = textView.window?.firstResponder === textView
+        let hasSelection = textView.selectedRange().length > 0
+        if !isFirstResponder && !hasSelection && !context.coordinator.isProcessingTextChange && !context.coordinator.isMouseDown {
+            applyTypography(textView, coordinator: context.coordinator)
+        }
         
-        // Apply syntax highlighting if not in rich text mode
-        // Apply after string update or when syntax mode might have changed
-        // Do this LAST to ensure nothing overwrites it
+        // TEMPORARILY DISABLED: Apply syntax highlighting if not in rich text mode
+        // Syntax highlighting is disabled to fix cursor movement and selection issues
+        // TODO: Re-enable with a better implementation that doesn't interfere with user input
+        /*
         if !isRichText, let storage = textView.textStorage, storage.length > 0 {
             // Only reapply if string was updated or if we haven't applied highlighting yet
             if stringWasUpdated || context.coordinator.lastAppliedSyntaxMode != syntaxMode {
-                // Use async with a small delay to ensure all other updates are done
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
-                    guard let textView = context.coordinator.textView,
-                          let storage = textView.textStorage,
-                          storage.length > 0 else { return }
-                    
-                    // Double-check we're still in plain text mode
-                    if !self.isRichText {
-                        context.coordinator.applySyntaxHighlighting(to: storage, syntaxMode: syntaxMode)
-                        context.coordinator.lastAppliedSyntaxMode = syntaxMode
-                    }
-                }
+                // Mark that we need highlighting update
+                context.coordinator.needsHighlightingUpdate = true
+                // Try to apply immediately - will skip if selection exists
+                context.coordinator.applySyntaxHighlighting(to: storage, syntaxMode: syntaxMode)
+                context.coordinator.lastAppliedSyntaxMode = syntaxMode
             }
         }
+        */
 
-        // In Rich Text mode without supplied attributed content, ensure typing uses dynamic label color
+        // In Rich Text mode without supplied attributed content, use explicit colors
+        // CRITICAL: Only set default colors for typing attributes, don't modify existing text storage
+        // This preserves user-selected colors and prevents overriding colors the user has chosen
         if isRichText && attributed == nil {
-            let fg = textView.textColor ?? NSColor.labelColor
+            let isDark = mpIsDarkMode()
+            let fg = isDark ? NSColor.white : NSColor.black
+            let bg = isDark ? NSColor(white: 0.1, alpha: 1.0) : NSColor.white
+            
+            // Always set textColor and background (these are defaults, not applied to existing text)
+            // CRITICAL: Do NOT set textColor here for Rich Text, as it overrides user selection
+            // textView.textColor = fg
+            textView.backgroundColor = bg
+            textView.appearance = NSApp.effectiveAppearance
+            
+            // Set typing attributes so new text gets the right color
+            // But don't modify existing text storage - that would override user-selected colors
+            // CRITICAL: Only set default typing attributes if none are set, to avoid overriding user selection
             var typing = textView.typingAttributes
-            let systemIsDark = NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-            let isDark = systemIsDark
-            
-            typing[.foregroundColor] = fg
-            textView.typingAttributes = typing
-            
-            // Apply color to all text
-            if let storage = textView.textStorage {
-                storage.beginEditing()
-                let fullRange = NSRange(location: 0, length: storage.length)
-                
-                if isDark {
-                    // In dark mode, replace all black/dark colors
-                    storage.enumerateAttribute(.foregroundColor, in: fullRange, options: []) { value, range, _ in
-                        if let color = value as? NSColor {
-                            if mpIsHardBlack(color) {
-                                storage.addAttribute(.foregroundColor, value: fg, range: range)
-                            }
-                        } else {
-                            storage.addAttribute(.foregroundColor, value: fg, range: range)
-                        }
-                    }
-                } else {
-                    // Light mode: apply to text without colors
-                    storage.enumerateAttribute(.foregroundColor, in: fullRange, options: []) { value, range, _ in
-                        if value == nil {
-                            storage.addAttribute(.foregroundColor, value: fg, range: range)
-                        }
-                    }
-                }
-                
-                storage.endEditing()
+            if typing[.foregroundColor] == nil {
+                typing[.foregroundColor] = fg
+                textView.typingAttributes = typing
             }
         }
 
@@ -334,48 +589,132 @@ struct CocoaTextView: NSViewRepresentable {
                 // Ensure new typing is plain
                 textView.typingAttributes = [:]
             } else {
-                // Switched to Rich: if no attributed content supplied, make sure typing uses dynamic label color
+                // Switched to Rich: use explicit colors for dark/light mode
+                let isDark = mpIsDarkMode()
+                let fg = isDark ? NSColor.white : NSColor.black
+                let bg = isDark ? NSColor(white: 0.1, alpha: 1.0) : NSColor.white
+                
+                textView.textColor = fg
+                textView.backgroundColor = bg
+                textView.appearance = NSApp.effectiveAppearance
+                
                 if attributed == nil {
-                    let fg = textView.textColor ?? NSColor.labelColor
+                    // No attributed content: apply explicit color to all text
                     var typing = textView.typingAttributes
                     typing[.foregroundColor] = fg
                     textView.typingAttributes = typing
                     
                     // Apply color to all existing text
-                    if let storage = textView.textStorage {
+                    if let storage = textView.textStorage, storage.length > 0 {
                         storage.beginEditing()
-                        storage.addAttribute(.foregroundColor, value: fg, range: NSRange(location: 0, length: storage.length))
+                        let fullRange = NSRange(location: 0, length: storage.length)
+                        // Only replace hard black colors and apply to uncolored text
+                        // This preserves user-selected colors
+                        storage.enumerateAttribute(.foregroundColor, in: fullRange, options: []) { value, range, _ in
+                            if let color = value as? NSColor {
+                                // Only replace hard black colors, preserve all other colors (including user-selected)
+                                if mpIsHardBlack(color) {
+                                    storage.removeAttribute(.foregroundColor, range: range)
+                                    storage.addAttribute(.foregroundColor, value: fg, range: range)
+                                }
+                                // Otherwise, keep the existing color (user-selected colors are preserved)
+                            } else {
+                                // No color set - apply default color
+                                storage.addAttribute(.foregroundColor, value: fg, range: range)
+                            }
+                        }
+                        // Also handle any ranges that don't have a color attribute at all
+                        var currentPos = 0
+                        while currentPos < storage.length {
+                            var rangeHasColor = false
+                            let checkRange = NSRange(location: currentPos, length: 1)
+                            storage.enumerateAttribute(.foregroundColor, in: checkRange, options: []) { value, _, stop in
+                                if value != nil {
+                                    rangeHasColor = true
+                                    stop.pointee = true
+                                }
+                            }
+                            if !rangeHasColor {
+                                // Find the extent of this uncolored range
+                                var uncoloredLength = 1
+                                while currentPos + uncoloredLength < storage.length {
+                                    let nextRange = NSRange(location: currentPos + uncoloredLength, length: 1)
+                                    var nextHasColor = false
+                                    storage.enumerateAttribute(.foregroundColor, in: nextRange, options: []) { value, _, stop in
+                                        if value != nil {
+                                            nextHasColor = true
+                                            stop.pointee = true
+                                        }
+                                    }
+                                    if nextHasColor {
+                                        break
+                                    }
+                                    uncoloredLength += 1
+                                }
+                                let uncoloredRange = NSRange(location: currentPos, length: uncoloredLength)
+                                storage.addAttribute(.foregroundColor, value: fg, range: uncoloredRange)
+                                currentPos += uncoloredLength
+                            } else {
+                                currentPos += 1
+                            }
+                        }
                         storage.endEditing()
                     }
                 } else {
-                    // When we have attributed content, check for hard black colors
-                    let isDark = mpIsDarkMode()
-                    let fg = textView.textColor ?? NSColor.labelColor
-                    
-                    if let storage = textView.textStorage {
+                    // When we have attributed content, only replace hard black colors
+                    // This preserves user-selected colors
+                    if let storage = textView.textStorage, storage.length > 0 {
                         storage.beginEditing()
                         let fullRange = NSRange(location: 0, length: storage.length)
                         
-                        // In dark mode, be aggressive: replace all black/dark colors with labelColor
-                        if isDark {
-                            storage.enumerateAttribute(.foregroundColor, in: fullRange, options: []) { value, range, _ in
-                                if let color = value as? NSColor {
-                                    if mpIsHardBlack(color) {
-                                        storage.addAttribute(.foregroundColor, value: fg, range: range)
-                                    }
-                                } else {
-                                    // No color set - apply labelColor
+                        // Only replace hard black colors and apply to uncolored text
+                        // This preserves user-selected colors
+                        storage.enumerateAttribute(.foregroundColor, in: fullRange, options: []) { value, range, _ in
+                            if let color = value as? NSColor {
+                                // Only replace hard black colors, preserve all other colors (including user-selected)
+                                if mpIsHardBlack(color) {
+                                    storage.removeAttribute(.foregroundColor, range: range)
                                     storage.addAttribute(.foregroundColor, value: fg, range: range)
                                 }
+                                // Otherwise, keep the existing color (user-selected colors are preserved)
+                            } else {
+                                // No color set - apply default color
+                                storage.addAttribute(.foregroundColor, value: fg, range: range)
                             }
-                        } else {
-                            // Light mode: only apply if no colors exist
-                            var hasColors = false
-                            storage.enumerateAttribute(.foregroundColor, in: fullRange, options: []) { _, _, _ in
-                                hasColors = true
+                        }
+                        // Also handle any ranges that don't have a color attribute at all
+                        var currentPos = 0
+                        while currentPos < storage.length {
+                            var rangeHasColor = false
+                            let checkRange = NSRange(location: currentPos, length: 1)
+                            storage.enumerateAttribute(.foregroundColor, in: checkRange, options: []) { value, _, stop in
+                                if value != nil {
+                                    rangeHasColor = true
+                                    stop.pointee = true
+                                }
                             }
-                            if !hasColors {
-                                storage.addAttribute(.foregroundColor, value: fg, range: fullRange)
+                            if !rangeHasColor {
+                                // Find the extent of this uncolored range
+                                var uncoloredLength = 1
+                                while currentPos + uncoloredLength < storage.length {
+                                    let nextRange = NSRange(location: currentPos + uncoloredLength, length: 1)
+                                    var nextHasColor = false
+                                    storage.enumerateAttribute(.foregroundColor, in: nextRange, options: []) { value, _, stop in
+                                        if value != nil {
+                                            nextHasColor = true
+                                            stop.pointee = true
+                                        }
+                                    }
+                                    if nextHasColor {
+                                        break
+                                    }
+                                    uncoloredLength += 1
+                                }
+                                let uncoloredRange = NSRange(location: currentPos, length: uncoloredLength)
+                                storage.addAttribute(.foregroundColor, value: fg, range: uncoloredRange)
+                                currentPos += uncoloredLength
+                            } else {
+                                currentPos += 1
                             }
                         }
                         
@@ -391,69 +730,78 @@ struct CocoaTextView: NSViewRepresentable {
         }
 
         // In Rich mode: ensure text storage matches provided attributed content, re-apply when it doesn't
+        // CRITICAL: Only update when user is NOT actively typing to prevent cursor jumping
+        // CRITICAL: If user is actively working, sync the attributed binding FROM the text view (not overwrite it)
+        // In Rich mode: ensure text storage matches provided attributed content, re-apply when it doesn't
+        // CRITICAL: Only update when user is NOT actively typing to prevent cursor jumping
+        // CRITICAL: If user is actively working, sync the attributed binding FROM the text view (not overwrite it)
         if isRichText, let attributed = attributed {
-            if let storage = textView.textStorage {
-                let current = storage.attributedSubstring(from: NSRange(location: 0, length: storage.length))
-                // Use NSObject equality to compare attributes too (not just string contents)
-                let matches = current.isEqual(attributed)
-                if !matches {
-                    storage.beginEditing()
-                    storage.setAttributedString(attributed)
-                    storage.endEditing()
-                    context.coordinator.appliedInitialAttributed = true
-                }
-            } else {
-                textView.textStorage?.beginEditing()
-                textView.textStorage?.setAttributedString(attributed)
-                textView.textStorage?.endEditing()
-                context.coordinator.appliedInitialAttributed = true
-            }
-            // Always check for hard black colors and replace them in dark mode
-            let isDark = mpIsDarkMode()
-            let fg = textView.textColor ?? NSColor.labelColor
+            // Check if this is an external update (input differs from what we last saw)
+            // We use isEqual because attributed strings are reference types but we care about content equality
+            let isExternalUpdate = (attributed != context.coordinator.lastAssignedAttributed) && 
+                                   !(context.coordinator.lastAssignedAttributed?.isEqual(attributed) ?? false)
             
-            if let storage = textView.textStorage {
-                storage.beginEditing()
-                let fullRange = NSRange(location: 0, length: storage.length)
-                
-                // In dark mode, be aggressive: replace all black/dark colors with labelColor
-                if isDark {
-                    storage.enumerateAttribute(.foregroundColor, in: fullRange, options: []) { value, range, _ in
-                        if let color = value as? NSColor {
-                            if mpIsHardBlack(color) {
-                                storage.addAttribute(.foregroundColor, value: fg, range: range)
-                            }
-                        } else {
-                            // No color set - apply labelColor
-                            storage.addAttribute(.foregroundColor, value: fg, range: range)
+            if isExternalUpdate {
+                // External change - update text storage
+                // Only update if it actually differs from current storage to avoid cursor jumps
+                if let storage = textView.textStorage {
+                    let current = storage.attributedSubstring(from: NSRange(location: 0, length: storage.length))
+                    if !current.isEqual(attributed) {
+                        // Preserve cursor
+                        let savedSelection = textView.selectedRange()
+                        
+                        storage.beginEditing()
+                        storage.setAttributedString(attributed)
+                        storage.endEditing()
+                        context.coordinator.appliedInitialAttributed = true
+                        
+                        if savedSelection.location <= storage.length {
+                            textView.setSelectedRange(savedSelection)
                         }
                     }
-                } else {
-                    // Light mode: only apply if no colors exist
-                    var hasColors = false
-                    storage.enumerateAttribute(.foregroundColor, in: fullRange, options: []) { _, _, _ in
-                        hasColors = true
-                    }
-                    if !hasColors {
-                        storage.addAttribute(.foregroundColor, value: fg, range: fullRange)
+                }
+                context.coordinator.lastAssignedAttributed = attributed
+            } else {
+                // No external change - check if we need to propagate local changes
+                // This handles cases where textDidChange might have been missed or we need to sync back
+                // This is CRITICAL for the color picker, as the text view might lose focus/responder status
+                // but we still need to preserve the color change and propagate it
+                if let storage = textView.textStorage {
+                    let current = storage.attributedSubstring(from: NSRange(location: 0, length: storage.length))
+                    if !current.isEqual(attributed) {
+                        // Local change detected that isn't in the binding yet
+                        // Propagate it back to SwiftUI
+                        context.coordinator.lastAssignedAttributed = current
+                        DispatchQueue.main.async {
+                            context.coordinator.parent.onAttributedChange?(current)
+                        }
                     }
                 }
-                
-                storage.endEditing()
             }
             
-            // Set typing attributes
+            // CRITICAL: Don't modify text storage colors here - this would override user-selected colors
+            // Only set default colors for typing attributes and background
+            // Color replacement should only happen on initial load (in makeNSView) or when switching modes
+            let isDark = mpIsDarkMode()
+            let fg = isDark ? NSColor.white : NSColor.black
+            let bg = isDark ? NSColor(white: 0.1, alpha: 1.0) : NSColor.white
+            
+            // Set background color (doesn't affect text colors)
+            textView.backgroundColor = bg
+            textView.appearance = NSApp.effectiveAppearance
+            nsView.backgroundColor = bg
+            
+            // Set typing attributes so new text gets the right color
+            // But don't modify existing text storage - that would override user-selected colors
+            textView.textColor = fg
             var typing = textView.typingAttributes
             typing[.foregroundColor] = fg
             textView.typingAttributes = typing
         }
 
-        // Ensure the editor remains first responder so typing works after updates (only if not already)
-        DispatchQueue.main.async {
-            if textView.window?.firstResponder !== textView {
-                textView.window?.makeFirstResponder(textView)
-            }
-        }
+        // CRITICAL: Don't force first responder status - this can interfere with cursor movement and selection
+        // The text view should naturally become first responder when clicked
+        // Only ensure basic properties are set, but don't interfere with user interactions
 
         // Prepare scroll notifications for gutter redraw during scroll
         context.coordinator.scrollView = nsView
@@ -520,12 +868,20 @@ struct CocoaTextView: NSViewRepresentable {
             textView.font = font
         }
         if let textStorage = textView.textStorage {
+            // Preserve cursor position before modifying text storage
+            let savedSelection = textView.selectedRange()
+            
             // Only apply line spacing; leave all other paragraph properties at defaults
             let paragraph = NSMutableParagraphStyle()
             paragraph.lineSpacing = max(0, desiredLineSpacing - 1) * font.pointSize * 0.5
             textStorage.beginEditing()
             textStorage.addAttribute(.paragraphStyle, value: paragraph, range: NSRange(location: 0, length: textStorage.length))
             textStorage.endEditing()
+            
+            // Restore cursor position after modification
+            if savedSelection.location <= textStorage.length {
+                textView.setSelectedRange(savedSelection)
+            }
         }
         coordinator.lastAppliedFontSize = desiredFontSize
         coordinator.lastAppliedLineSpacing = desiredLineSpacing
@@ -544,12 +900,17 @@ struct CocoaTextView: NSViewRepresentable {
         private var scrollNotificationsSetup = false
         // Track whether we've applied initial attributed content to avoid overriding user edits
         var appliedInitialAttributed = false
+        // Track the last attributed string assigned from SwiftUI to detect external updates
+        var lastAssignedAttributed: NSAttributedString?
         // Reentrancy/feedback guards
         var isUpdatingView = false
+        var isProcessingTextChange = false // Track when we're processing a text change from the text view
         var lastAppliedFontSize: CGFloat?
         var lastAppliedLineSpacing: CGFloat?
         // Syntax highlighting
         var lastAppliedSyntaxMode: SyntaxMode?
+        var needsHighlightingUpdate = false // Track if highlighting needs to be applied when selection clears
+        var isMouseDown = false // Track if mouse button is down (user is dragging to select)
         // Linting
         private var lintingObserver: AnyCancellable?
         private var appliedDiagnostics: Set<String> = []
@@ -595,9 +956,9 @@ struct CocoaTextView: NSViewRepresentable {
         
         deinit {
             NotificationCenter.default.removeObserver(self)
+            // Note: colorAppliedNotificationObserver will be automatically removed when deallocated
             // AnyCancellable automatically cancels when deallocated, so no explicit cancellation needed
             // Event monitors are automatically cleaned up when the app quits
-            // We don't need to explicitly remove them in deinit due to Sendable constraints
         }
         
         func setupGoToDefinitionMonitoring(for textView: NSTextView) {
@@ -622,6 +983,53 @@ struct CocoaTextView: NSViewRepresentable {
                 }
                 
                 return event
+            }
+        }
+        
+        func setupMouseTracking(for textView: NSTextView) {
+            // Use a more targeted approach - only monitor events within the text view's window
+            // This avoids interfering with global event handling
+            guard let window = textView.window else { return }
+            
+            // Monitor mouse down events to detect when user starts dragging to select
+            _ = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown]) { [weak self, weak textView] event in
+                // Only track if the event is in our text view's window
+                guard let self = self,
+                      let tv = textView,
+                      event.window === window else {
+                    return event
+                }
+                // Check if the click is actually in the text view
+                let locationInWindow = event.locationInWindow
+                if let locationInView = tv.superview?.convert(locationInWindow, from: nil),
+                   tv.frame.contains(locationInView) {
+                    self.isMouseDown = true
+                }
+                return event // Always return the event so text view can handle it normally
+            }
+            
+            // Monitor mouse up events to detect when user finishes selecting
+            _ = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseUp]) { [weak self] event in
+                guard let self = self,
+                      event.window === window else {
+                    return event
+                }
+                self.isMouseDown = false
+                // When mouse is released, try to apply any pending highlighting
+                if self.needsHighlightingUpdate {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        if let tv = self.textView,
+                           let storage = tv.textStorage,
+                           storage.length > 0,
+                           !self.parent.isRichText,
+                           tv.selectedRange().length == 0 {
+                            self.applySyntaxHighlighting(to: storage, syntaxMode: self.parent.syntaxMode)
+                            self.lastAppliedSyntaxMode = self.parent.syntaxMode
+                            self.needsHighlightingUpdate = false
+                        }
+                    }
+                }
+                return event // Always return the event so text view can handle it normally
             }
         }
 
@@ -670,19 +1078,34 @@ struct CocoaTextView: NSViewRepresentable {
                 return 
             }
             
-            // Skip highlighting if user is actively selecting text to avoid clearing selection
-            if let tv = textView, tv.selectedRange().length > 0 {
-                // Defer highlighting until selection is cleared
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
-                    guard let self = self,
-                          let tv = self.textView,
-                          tv.selectedRange().length == 0, // Only apply if selection is cleared
-                          let storage = tv.textStorage,
-                          storage.length > 0 else { return }
-                    self.applySyntaxHighlighting(to: storage, syntaxMode: syntaxMode)
-                }
+            guard let tv = textView else {
+                print("[SyntaxHighlight] No text view")
                 return
             }
+            
+            // CRITICAL: Ensure text view remains selectable before any operations
+            if !tv.isSelectable {
+                tv.isSelectable = true
+            }
+            
+            // Skip highlighting if user is actively dragging with mouse (most reliable check)
+            if isMouseDown {
+                print("[SyntaxHighlight] Skipping - mouse is down (user is dragging)")
+                needsHighlightingUpdate = true
+                return
+            }
+            
+            // Skip highlighting if user has an active selection
+            // Modifying text storage attributes will clear the selection, so we defer until selection is cleared
+            let currentSelection = tv.selectedRange()
+            if currentSelection.length > 0 {
+                print("[SyntaxHighlight] Skipping - user has active selection (length: \(currentSelection.length))")
+                needsHighlightingUpdate = true // Mark that we need to apply when selection clears
+                return
+            }
+            
+            // Clear the flag since we're applying now
+            needsHighlightingUpdate = false
             
             let text = storage.string
             var appliedCount = 0
@@ -747,8 +1170,9 @@ struct CocoaTextView: NSViewRepresentable {
             }
             
             // Set default text color for any ranges that weren't colored
-            // Use textView's textColor or system default
-            let defaultColor = textView?.textColor ?? NSColor.labelColor
+            // Use explicit colors based on appearance
+            let isDark = mpIsDarkMode()
+            let defaultColor = isDark ? NSColor.white : NSColor.black
             let fullRange = NSRange(location: 0, length: storage.length)
             
             // Find ranges that don't have colors
@@ -790,9 +1214,14 @@ struct CocoaTextView: NSViewRepresentable {
             
             storage.endEditing()
             
-            // Force the text view to redraw, but only if there's no active selection
-            // to avoid clearing the user's selection
-            if let tv = textView, tv.selectedRange().length == 0 {
+            // CRITICAL: After modifying text storage, ensure text view is still selectable
+            // Modifying attributes can sometimes cause the text view to lose selectability
+            if let tv = textView {
+                // Ensure selectability is maintained
+                if !tv.isSelectable {
+                    tv.isSelectable = true
+                }
+                // Force redraw
                 tv.needsDisplay = true
             }
             
@@ -810,19 +1239,56 @@ struct CocoaTextView: NSViewRepresentable {
 
         func textDidChange(_ notification: Notification) {
             guard let tv = textView else { return }
+            print("[CocoaTextView] textDidChange fired. RichText: \(parent.isRichText), Length: \(tv.string.count)")
             // Avoid mutating SwiftUI state if we're inside an update pass
             if isUpdatingView { return }
+            
+            // Mark that we're processing a text change from the text view
+            // This prevents updateNSView from overwriting the text and clearing selection
+            isProcessingTextChange = true
+            
             let newText = tv.string
-            if parent.text != newText {
-                parent.text = newText
-                parent.onTextChange?(newText)
+            
+            // CRITICAL: Defer state modifications to avoid "Modifying state during view update" warning
+            // This ensures we're not modifying SwiftUI state during a view update cycle
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                if self.parent.text != newText {
+                    self.parent.text = newText
+                    self.parent.onTextChange?(newText)
+                }
+                
+                // If rich text, also propagate attributed string so styles persist across tab switches
+                if self.parent.isRichText, let storage = tv.textStorage {
+                    let range = NSRange(location: 0, length: storage.length)
+                    let snapshot = storage.attributedSubstring(from: range)
+                    // Update our local tracking so we don't treat the echo back from SwiftUI as an external change
+                    self.lastAssignedAttributed = snapshot
+                    self.parent.onAttributedChange?(snapshot)
+                }
             }
-            // If rich text, also propagate attributed string so styles persist across tab switches
-            if parent.isRichText, let storage = tv.textStorage {
-                let range = NSRange(location: 0, length: storage.length)
-                let snapshot = storage.attributedSubstring(from: range)
-                parent.onAttributedChange?(snapshot)
+            
+            // CRITICAL: Ensure typing attributes have the correct color for plain text mode
+            // This ensures newly typed text is visible in dark mode
+            // This doesn't modify SwiftUI state, so it's safe to do synchronously
+            if !parent.isRichText {
+                let isDark = mpIsDarkMode()
+                let fg = isDark ? NSColor.white : NSColor.black
+                let bg = isDark ? NSColor(white: 0.1, alpha: 1.0) : NSColor.white
+                var typing = tv.typingAttributes
+                if typing[.foregroundColor] as? NSColor != fg {
+                    typing[.foregroundColor] = fg
+                    tv.typingAttributes = typing
+                }
+                // Also ensure textColor and background are set
+                if tv.textColor != fg {
+                    tv.textColor = fg
+                }
+                tv.backgroundColor = bg
+                tv.appearance = NSApp.effectiveAppearance
             }
+            
+            // Update gutter width (doesn't modify SwiftUI state, safe to do synchronously)
             if parent.showLineNumbers {
                 let lines = newText.split(separator: "\n", omittingEmptySubsequences: false).count
                 gutterWidth = LineNumberGutterView.desiredWidth(totalLines: lines, font: gutterView?.numberFont ?? NSFont.monospacedSystemFont(ofSize: 10, weight: .regular))
@@ -830,28 +1296,62 @@ struct CocoaTextView: NSViewRepresentable {
                 gutterView?.needsDisplay = true
             }
             
-            // Trigger linting if enabled
+            // Trigger linting if enabled (doesn't modify SwiftUI state directly, safe to do synchronously)
             if parent.lintingEnabled, let linter = parent.linter {
                 linter.lint(newText, syntaxMode: parent.syntaxMode)
             }
             
-            // Apply syntax highlighting if not in rich text mode
-            // Skip if user is actively selecting text to avoid clearing selection
-            if !parent.isRichText, let storage = tv.textStorage, storage.length > 0 {
-                let selectedRange = tv.selectedRange()
-                if selectedRange.length == 0 {
-                    // No selection - safe to apply highlighting immediately
-                    applySyntaxHighlighting(to: storage, syntaxMode: parent.syntaxMode)
-                    lastAppliedSyntaxMode = parent.syntaxMode
-                }
-                // If there's a selection, highlighting will be deferred until selection clears
+            // Reset the flag after a very short delay to allow SwiftUI to process the update
+            // But keep it short so we don't block legitimate external updates
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
+                self?.isProcessingTextChange = false
             }
+            
+            // TEMPORARILY DISABLED: Apply syntax highlighting if not in rich text mode
+            // Syntax highlighting is disabled to fix cursor movement and selection issues
+            // TODO: Re-enable with a better implementation that doesn't interfere with user input
+            /*
+            if !parent.isRichText, let storage = tv.textStorage, storage.length > 0 {
+                // Mark that we need highlighting update
+                needsHighlightingUpdate = true
+                // Delay highlighting to give user time to select text if they want to
+                // This prevents highlighting from interfering with selection attempts
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+                    guard let self = self,
+                          let tv = self.textView,
+                          let storage = tv.textStorage,
+                          storage.length > 0,
+                          !self.parent.isRichText else { return }
+                    // Only apply if user doesn't have a selection and mouse isn't down
+                    if tv.selectedRange().length == 0 && !self.isMouseDown {
+                        self.applySyntaxHighlighting(to: storage, syntaxMode: self.parent.syntaxMode)
+                        self.lastAppliedSyntaxMode = self.parent.syntaxMode
+                        self.needsHighlightingUpdate = false
+                    }
+                }
+            }
+            */
         }
 
         func textViewDidChangeSelection(_ notification: Notification) {
             gutterView?.needsDisplay = true
             updateCursorPosition()
             updateBracketMatching()
+            
+            // Re-apply syntax highlighting when selection is cleared
+            // This ensures highlighting gets applied after user finishes selecting/copying text
+            if let tv = textView, 
+               tv.selectedRange().length == 0,
+               !parent.isRichText,
+               let storage = tv.textStorage,
+               storage.length > 0 {
+                // Only re-apply if we need an update (text changed while selection was active)
+                if needsHighlightingUpdate {
+                    applySyntaxHighlighting(to: storage, syntaxMode: parent.syntaxMode)
+                    lastAppliedSyntaxMode = parent.syntaxMode
+                    needsHighlightingUpdate = false
+                }
+            }
         }
         
         private func updateBracketMatching() {
@@ -860,7 +1360,9 @@ struct CocoaTextView: NSViewRepresentable {
             // Remove previous bracket highlighting
             if let oldRange = bracketMatchRange {
                 storage.removeAttribute(.backgroundColor, range: oldRange)
-                storage.removeAttribute(.foregroundColor, range: oldRange)
+                // CRITICAL: Do NOT remove foreground color, as we only set background color
+                // Removing foreground color wipes out user's syntax highlighting or manual color selection
+                // storage.removeAttribute(.foregroundColor, range: oldRange)
             }
             bracketMatchRange = nil
             
@@ -1078,51 +1580,27 @@ struct CocoaTextView: NSViewRepresentable {
             parent.onCursorChange?(line, column, position)
         }
 
-        func textView(_ textView: NSTextView, shouldChangeTextIn affectedCharRange: NSRange, replacementString: String?) -> Bool {
-            // Allow all edits
-            return true
-        }
-        
-
-        // Ensure typing attributes keep a dynamic foreground color in Rich Text when appropriate
+        // Handle attribute changes (e.g. from Color Panel)
         func textViewDidChangeTypingAttributes(_ notification: Notification) {
-            guard let tv = textView else { return }
+            guard let tv = textView, parent.isRichText else { return }
             
-            // Prevent infinite recursion - if we're already updating typing attributes, skip
-            guard !isUpdatingTypingAttributes else { return }
-            isUpdatingTypingAttributes = true
-            defer { isUpdatingTypingAttributes = false }
-            
-            // Rich Text mode handling
-            // Determine whether current content has explicit foreground colors
-            var hasExplicitFG = false
+            // Sync the new attributes to SwiftUI
             if let storage = tv.textStorage {
                 let range = NSRange(location: 0, length: storage.length)
                 let snapshot = storage.attributedSubstring(from: range)
-                hasExplicitFG = mpAttributedHasExplicitForegroundColor(snapshot)
-            }
-
-            if hasExplicitFG {
-                // Do not force a global typing color over imported colors
-                if tv.typingAttributes[.foregroundColor] != nil {
-                    var typing = tv.typingAttributes
-                    typing.removeValue(forKey: .foregroundColor)
-                    tv.typingAttributes = typing
+                
+                // Update local tracking
+                lastAssignedAttributed = snapshot
+                
+                // Propagate to SwiftUI
+                DispatchQueue.main.async { [weak self] in
+                    self?.parent.onAttributedChange?(snapshot)
                 }
-            } else {
-                // Keep dynamic label color so text follows the system appearance
-                var typing = tv.typingAttributes
-                let isDark = tv.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-                let currentFG = typing[.foregroundColor] as? NSColor
-                let desired = tv.textColor ?? NSColor.labelColor
-                if currentFG == nil || (isDark && currentFG != nil && mpIsHardBlack(currentFG!)) {
-                    typing[.foregroundColor] = desired
-                    tv.typingAttributes = typing
-                }
-                // Keep the caret visible
-                tv.insertionPointColor = desired
             }
         }
+        
+
+
         
         // MARK: - Linting Diagnostics
         
@@ -1487,3 +1965,4 @@ final class LineNumberGutterView: NSView {
         }
     }
 }
+
