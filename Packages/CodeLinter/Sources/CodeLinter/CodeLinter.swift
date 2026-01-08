@@ -5,10 +5,11 @@ import Combine
 class CodeLinter: ObservableObject {
     @Published var diagnostics: [Diagnostic] = []
     
+    init() {
+    }
+    
     func lint(_ text: String, syntaxMode: SyntaxMode) {
         diagnostics.removeAll()
-        
-        print("[Linting] Starting lint for \(syntaxMode.displayName), text length: \(text.count)")
         
         switch syntaxMode {
         case .swift:
@@ -24,8 +25,6 @@ class CodeLinter: ObservableObject {
         default:
             break
         }
-        
-        print("[Linting] Found \(diagnostics.count) diagnostics")
     }
     
     // MARK: - Language specific linting (unchanged from original implementation)

@@ -19,27 +19,27 @@
   "swiftCommands" : {
     "C.CodeLinter-arm64-apple-macosx26.0-debug.module" : {
       "executable" : "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
-      "fileList" : "/Users/ewg/Desktop/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/CodeLinter.build/sources",
-      "importPath" : "/Users/ewg/Desktop/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/Modules",
+      "fileList" : "/Volumes/Storage/Projects/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/CodeLinter.build/sources",
+      "importPath" : "/Volumes/Storage/Projects/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/Modules",
       "inputs" : [
         {
           "kind" : "file",
-          "name" : "/Users/ewg/Desktop/MacPad/MacPad/Packages/CodeLinter/Sources/CodeLinter/CodeLinter.swift"
+          "name" : "/Volumes/Storage/Projects/MacPad/MacPad/Packages/CodeLinter/Sources/CodeLinter/CodeLinter.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/ewg/Desktop/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/swift-version-51F8F1A6CD23E625.txt"
+          "name" : "/Volumes/Storage/Projects/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/swift-version-51F8F1A6CD23E625.txt"
         },
         {
           "kind" : "file",
-          "name" : "/Users/ewg/Desktop/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/CodeLinter.build/sources"
+          "name" : "/Volumes/Storage/Projects/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/CodeLinter.build/sources"
         }
       ],
       "isLibrary" : true,
       "moduleName" : "CodeLinter",
-      "moduleOutputPath" : "/Users/ewg/Desktop/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/Modules/CodeLinter.swiftmodule",
+      "moduleOutputPath" : "/Volumes/Storage/Projects/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/Modules/CodeLinter.swiftmodule",
       "objects" : [
-        "/Users/ewg/Desktop/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/CodeLinter.build/CodeLinter.swift.o"
+        "/Volumes/Storage/Projects/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/CodeLinter.build/CodeLinter.swift.o"
       ],
       "otherArguments" : [
         "-target",
@@ -54,12 +54,12 @@
         "-DDEBUG",
         "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
         "-module-cache-path",
-        "/Users/ewg/Desktop/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/ModuleCache",
+        "/Volumes/Storage/Projects/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/ModuleCache",
         "-parseable-output",
         "-parse-as-library",
         "-emit-objc-header",
         "-emit-objc-header-path",
-        "/Users/ewg/Desktop/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/CodeLinter.build/include/CodeLinter-Swift.h",
+        "/Volumes/Storage/Projects/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/CodeLinter.build/include/CodeLinter-Swift.h",
         "-swift-version",
         "5",
         "-Xfrontend",
@@ -102,18 +102,18 @@
         "-package-name",
         "codelinter"
       ],
-      "outputFileMapPath" : "/Users/ewg/Desktop/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/CodeLinter.build/output-file-map.json",
+      "outputFileMapPath" : "/Volumes/Storage/Projects/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/CodeLinter.build/output-file-map.json",
       "outputs" : [
         {
           "kind" : "file",
-          "name" : "/Users/ewg/Desktop/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/Modules/CodeLinter.swiftmodule"
+          "name" : "/Volumes/Storage/Projects/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/Modules/CodeLinter.swiftmodule"
         }
       ],
       "prepareForIndexing" : true,
       "sources" : [
-        "/Users/ewg/Desktop/MacPad/MacPad/Packages/CodeLinter/Sources/CodeLinter/CodeLinter.swift"
+        "/Volumes/Storage/Projects/MacPad/MacPad/Packages/CodeLinter/Sources/CodeLinter/CodeLinter.swift"
       ],
-      "tempsPath" : "/Users/ewg/Desktop/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/CodeLinter.build",
+      "tempsPath" : "/Volumes/Storage/Projects/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/CodeLinter.build",
       "wholeModuleOptimization" : false
     }
   },
@@ -128,9 +128,9 @@
       "-package-name",
       "codelinter",
       "-c",
-      "/Users/ewg/Desktop/MacPad/MacPad/Packages/CodeLinter/Sources/CodeLinter/CodeLinter.swift",
+      "/Volumes/Storage/Projects/MacPad/MacPad/Packages/CodeLinter/Sources/CodeLinter/CodeLinter.swift",
       "-I",
-      "/Users/ewg/Desktop/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/Modules",
+      "/Volumes/Storage/Projects/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/Modules",
       "-target",
       "arm64-apple-macosx13.0",
       "-incremental",
@@ -143,12 +143,12 @@
       "-DDEBUG",
       "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
       "-module-cache-path",
-      "/Users/ewg/Desktop/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/ModuleCache",
+      "/Volumes/Storage/Projects/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/ModuleCache",
       "-parseable-output",
       "-parse-as-library",
       "-emit-objc-header",
       "-emit-objc-header-path",
-      "/Users/ewg/Desktop/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/CodeLinter.build/include/CodeLinter-Swift.h",
+      "/Volumes/Storage/Projects/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/CodeLinter.build/include/CodeLinter-Swift.h",
       "-swift-version",
       "5",
       "-Xfrontend",
@@ -211,7 +211,7 @@
     }
   },
   "writeCommands" : {
-    "/Users/ewg/Desktop/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/CodeLinter.build/sources" : {
+    "/Volumes/Storage/Projects/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/CodeLinter.build/sources" : {
       "alwaysOutOfDate" : false,
       "inputs" : [
         {
@@ -220,12 +220,12 @@
         },
         {
           "kind" : "file",
-          "name" : "/Users/ewg/Desktop/MacPad/MacPad/Packages/CodeLinter/Sources/CodeLinter/CodeLinter.swift"
+          "name" : "/Volumes/Storage/Projects/MacPad/MacPad/Packages/CodeLinter/Sources/CodeLinter/CodeLinter.swift"
         }
       ],
-      "outputFilePath" : "/Users/ewg/Desktop/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/CodeLinter.build/sources"
+      "outputFilePath" : "/Volumes/Storage/Projects/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/CodeLinter.build/sources"
     },
-    "/Users/ewg/Desktop/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/swift-version-51F8F1A6CD23E625.txt" : {
+    "/Volumes/Storage/Projects/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/swift-version-51F8F1A6CD23E625.txt" : {
       "alwaysOutOfDate" : true,
       "inputs" : [
         {
@@ -237,7 +237,7 @@
           "name" : "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
         }
       ],
-      "outputFilePath" : "/Users/ewg/Desktop/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/swift-version-51F8F1A6CD23E625.txt"
+      "outputFilePath" : "/Volumes/Storage/Projects/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/swift-version-51F8F1A6CD23E625.txt"
     }
   }
 }

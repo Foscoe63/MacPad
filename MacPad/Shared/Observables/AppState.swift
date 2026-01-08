@@ -573,6 +573,8 @@ class AppState: ObservableObject {
         var path: String?
         var syntax: SyntaxMode
         var isModified: Bool
+        // Store attributed content as RTF data
+        var attributedData: Data?
     }
     
     func saveSessionIfEnabled() {
@@ -580,12 +582,19 @@ class AppState: ObservableObject {
         guard enabled else { return }
         // Snapshot current open documents
         let payload: [SessionDoc] = documents.map { doc in
-            SessionDoc(
+            var attrData: Data? = nil
+            if let attr = doc.attributedContent {
+                // Serialize to RTF for persistence
+                attrData = try? attr.data(from: NSRange(location: 0, length: attr.length), documentAttributes: [.documentType: NSAttributedString.DocumentType.rtf])
+            }
+            
+            return SessionDoc(
                 name: doc.name,
                 content: doc.content,
                 path: doc.path?.path,
                 syntax: doc.syntaxMode,
-                isModified: doc.isModified
+                isModified: doc.isModified,
+                attributedData: attrData
             )
         }
         do {
@@ -598,7 +607,7 @@ class AppState: ObservableObject {
             // Best-effort flush to disk to reduce chance of data loss on sudden quit
             _ = defaults.synchronize()
         } catch {
-            // Ignore serialization errors
+            print("[Session] Failed to save session: \(error)")
         }
     }
     
@@ -614,8 +623,16 @@ class AppState: ObservableObject {
             for sd in payload {
                 let url = sd.path.flatMap { URL(fileURLWithPath: $0) }
                 let doc = Document(name: sd.name, content: sd.content, path: url, syntaxMode: sd.syntax)
-                // If the file on disk is a rich text format we can load attributes now to restore colors
-                if let url = url {
+                
+                // Priority 1: Restore from saved session data (unsaved changes)
+                if let attrData = sd.attributedData,
+                   let restoredAttr = try? NSAttributedString(data: attrData, options: [.documentType: NSAttributedString.DocumentType.rtf], documentAttributes: nil) {
+                    doc.attributedContent = restoredAttr
+                    // Use string from attributed content to ensure sync
+                    doc.content = restoredAttr.string
+                } 
+                // Priority 2: If no session data, try reloading from disk if it's a file
+                else if let url = url {
                     let (attr, plain) = Self.loadRichIfAvailable(from: url)
                     if let attr = attr {
                         doc.attributedContent = attr
@@ -624,6 +641,7 @@ class AppState: ObservableObject {
                         doc.content = plain
                     }
                 }
+                
                 doc.isModified = sd.isModified
                 restored.append(doc)
             }
@@ -635,7 +653,7 @@ class AppState: ObservableObject {
                 selectedTab = documents[clamped].id
             }
         } catch {
-            // Ignore deserialization errors
+            print("[Session] Failed to restore session: \(error)")
         }
     }
 }

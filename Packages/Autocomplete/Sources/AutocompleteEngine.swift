@@ -10,6 +10,7 @@ class AutocompleteEngine: ObservableObject {
     private let keywordMap: [SyntaxMode: Set<String>]
     
     init() {
+        print("[Debug] AutocompleteEngine initialized (Package)")
         keywordMap = [
             .swift: Set([
                 "let", "var", "func", "class", "struct", "enum", "protocol",

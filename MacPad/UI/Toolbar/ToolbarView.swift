@@ -86,7 +86,7 @@ struct ToolbarView: View {
             }
             
             // Text color palette (moved from TabStrip)
-            Button(action: { showingColorPopover.toggle() }) {
+            Button(action: { showingColorPopover.toggle(); if showingColorPopover { syncColorFromSelection() } }) {
                 Image(systemName: "paintpalette")
                     .foregroundStyle(.red, .yellow, .blue)
             }
@@ -102,6 +102,9 @@ struct ToolbarView: View {
                     }
                     ColorPicker("Color", selection: $chosenColor, supportsOpacity: true)
                         .disabled(!isRichText)
+                        .onChange(of: chosenColor) {
+                            applyChosenColor()
+                        }
                     Toggle("Use for new typing", isOn: $applyColorToTyping)
                         .disabled(!isRichText)
                     HStack {
@@ -404,6 +407,26 @@ struct ToolbarView: View {
         attrs[.underlineStyle] = styleUnderline ? NSUnderlineStyle.single.rawValue : 0
         attrs[.strikethroughStyle] = styleStrikethrough ? NSUnderlineStyle.single.rawValue : 0
         tv.typingAttributes = attrs
+    }
+
+    private func syncColorFromSelection() {
+        guard let tv = focusedTextView() else { return }
+        let attrs: [NSAttributedString.Key: Any]
+        if tv.selectedRange.length > 0, let textStorage = tv.textStorage, tv.selectedRange.location < textStorage.length {
+            let location = max(0, min(tv.selectedRange.location, textStorage.length - 1))
+            attrs = textStorage.attributes(at: location, effectiveRange: nil)
+        } else {
+            attrs = tv.typingAttributes
+        }
+        
+        if let color = attrs[.foregroundColor] as? NSColor {
+            // Convert NSColor to Color, ensuring we have a valid color space
+            if let srgb = color.usingColorSpace(.sRGB) {
+                chosenColor = Color(nsColor: srgb)
+            } else {
+                chosenColor = Color(nsColor: color)
+            }
+        }
     }
 
     // MARK: - Color palette actions
