@@ -1,110 +1,77 @@
-# MacPad — Native macOS Productivity Suite
+# MacPad - Dual-Mode Text Editor and KanBan Board
 
-A modern, native SwiftUI productivity suite for macOS 15+ featuring both a powerful text editor and KanBan board.
+MacPad is a sophisticated macOS productivity application that combines a feature-rich text editor with an interactive KanBan board in a single, seamless interface.
 
-## ✅ Features
+## Features
 
 ### Text Editor
-- **Multi-tab editing** with draggable tabs
-- **Syntax highlighting** for Swift, Python, JavaScript, JSON, HTML, CSS
-- **Dark & Light mode** with system appearance detection
-- **Find & Replace** with regex and case-sensitive options
-- **File browser sidebar** (Finder-like navigation)
-- **Auto-completion** for keywords and bracket pairing
-- **Code linting** with real-time underlines (indentation, unused variables)
-- **Go to Definition** via ⌘+click
-- **Project workspace support**
-- **Customizable toolbar** with drag-and-drop buttons
-- **Status bar** showing line/column, encoding, and file stats
+- Full-featured text editor with syntax highlighting for multiple programming languages
+- File browser sidebar for easy navigation
+- Tabbed document interface
+- Find and replace functionality
+- Auto-save and session restoration
+- Support for multiple file formats
+- Customizable themes and appearance options
 
 ### KanBan Board
-- **Interactive task management** with drag-and-drop functionality
-- **Four default columns**: To Do, In Progress, Review, Done
-- **Task customization** with title, description, priority, due dates, and tags
-- **Visual indicators** for task priority and status
-- **Board statistics** with task breakdown by priority
-- **Persistent storage** of tasks and boards
-- **Easy switching** between text editor and KanBan board
+- Interactive four-column KanBan board (To Do, In Progress, Review, Done)
+- Drag-and-drop task management between columns
+- Rich task details including title, description, priority, due dates, assignees, and tags
+- Statistics dashboard with progress tracking
+- Persistent storage of tasks and board state
+- Visual indicators for task status and priority
 
-## 🛠️ Build Instructions
+## Architecture
 
-### 1. Prerequisites
-- macOS 15+
-- Xcode 16+ (with Swift 6.2 toolchain)
-- Basic familiarity with SwiftUI and macOS development
+The application is built using:
+- SwiftUI for the native macOS user interface
+- Swift Package Manager for modular code organization
+- Core Data or file-based persistence for storing documents and tasks
+- Modern Swift concurrency patterns
 
-### 2. Setup
-1. Clone or copy the entire `/Users/ewg/MacPad` folder.
-2. Open `MacPad.xcodeproj` in Xcode (located at `/Users/ewg/MacPad/MacPad.xcodeproj`).
-3. Select **MacPad** as the target.
-4. Set Deployment Target to **macOS 15.0+**.
+### Package Structure
+- `FindReplace`: Provides find and replace functionality
+- `SyntaxHighlighting`: Implements syntax highlighting for various programming languages
+- `Autocomplete`: Offers intelligent code completion
+- `CodeLinter`: Provides code quality analysis and linting
 
-### 3. Build & Run
-- Press **⌘ + R** to build and run.
-- The app will launch with the ability to switch between text editor and KanBan board.
+## Installation
 
-### 4. Build for Distribution
-1. Go to **Product → Archive**.
-2. Once archived, click **Distribute App**.
-3. Choose **Developer ID** or **Mac App Store**.
-4. Follow the prompts to sign and export.
+To build and run MacPad:
 
-### 5. Dependencies
-- No external dependencies — uses only native Swift/SwiftUI frameworks.
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd MacPad
+   ```
 
-## 📁 File Structure
+2. Build the project:
+   ```bash
+   swift build
+   ```
 
-```
-MacPad/
-├── AppDelegate.swift
-├── ContentView.swift
-├── Shared/
-│   ├── Constants.swift
-│   ├── Extensions.swift
-│   └── Observables/
-│       ├── AppState.swift
-│       └── KanbanState.swift
-├── UI/
-│   ├── Toolbar/
-│   ├── Sidebar/
-│   ├── Editor/
-│   ├── Dialog/
-│   ├── Modal/
-│   ├── StatusBar/
-│   └── Kanban/
-│       ├── KanbanBoardView.swift
-│       ├── KanbanColumnView.swift
-│       └── TaskCardView.swift
-├── Services/
-├── Models/
-│   ├── Document.swift
-│   ├── Task.swift
-│   └── KanbanBoard.swift
-├── Assets/        # Xcode Asset Catalog (for icons)
-└── Project/
-    ├── Package.swift
-    └── MacPad.xcodeproj
-```
+3. To run tests:
+   ```bash
+   swift test
+   ```
 
-## 📚 Technical Notes
+## Usage
 
-- Uses **SwiftUI** exclusively — no AppKit interop.
-- All state managed via `@StateObject` and `@ObservedObject`.
-- Syntax highlighting uses **`AttributedString`** with regex patterns from `SyntaxMode`.
-- File I/O handled via `FileManager`, async-safe.
-- Undo/Redo leverages SwiftUI's built-in `UndoManager`.
-- KanBan board persists data to user's Documents directory as JSON.
+When you launch MacPad, you'll see a tabbed interface with two main sections:
 
-## 🚀 Future Enhancements
+1. **Editor Tab**: Access the full-featured text editor
+2. **Kanban Tab**: Switch to the KanBan board for project management
 
-- Themes via `.xcassets` (color presets)
-- Plugin system for custom syntaxes
-- Git integration
-- Terminal panel
-- Multi-cursor editing
-- Export KanBan boards to various formats
-- Collaboration features for shared boards
+The application remembers your last session, including open files and the state of your KanBan board.
 
-## 📜 License
+## Development
 
-MIT — Free to use, modify, and distribute.
+The project follows modern Swift development practices:
+- Clean, modular architecture using Swift Packages
+- Comprehensive documentation
+- Proper error handling
+- Adherence to Swift API Guidelines
+
+## License
+
+This project is available under the MIT license.
