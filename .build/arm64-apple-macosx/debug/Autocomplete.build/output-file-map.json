@@ -1,0 +1,12 @@
+{
+  "": {
+    "swift-dependencies": "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/Autocomplete.build/master.swiftdeps"
+  },
+  "/Volumes/Storage/Projects/MacPad/Packages/Autocomplete/Sources/Autocomplete/Autocomplete.swift": {
+    "dependencies": "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/Autocomplete.build/Autocomplete.d",
+    "object": "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/Autocomplete.build/Autocomplete.swift.o",
+    "swiftmodule": "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/Autocomplete.build/Autocomplete~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/Autocomplete.build/Autocomplete.swiftdeps",
+    "diagnostics": "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/Autocomplete.build/Autocomplete.dia"
+  }
+}

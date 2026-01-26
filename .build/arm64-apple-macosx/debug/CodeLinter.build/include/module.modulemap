@@ -1,0 +1,3 @@
+module CodeLinter {
+    header "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/CodeLinter.build/include/CodeLinter-Swift.h"
+}

@@ -1,0 +1,12 @@
+{
+  "": {
+    "swift-dependencies": "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/SyntaxHighlighting.build/master.swiftdeps"
+  },
+  "/Volumes/Storage/Projects/MacPad/Packages/SyntaxHighlighting/Sources/SyntaxHighlighting/SyntaxHighlighting.swift": {
+    "dependencies": "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/SyntaxHighlighting.build/SyntaxHighlighting.d",
+    "object": "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/SyntaxHighlighting.build/SyntaxHighlighting.swift.o",
+    "swiftmodule": "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/SyntaxHighlighting.build/SyntaxHighlighting~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/SyntaxHighlighting.build/SyntaxHighlighting.swiftdeps",
+    "diagnostics": "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/SyntaxHighlighting.build/SyntaxHighlighting.dia"
+  }
+}

@@ -1,7 +1,9 @@
 import Foundation
+import Combine
 
 // MARK: - Kanban Board Model
 class KanbanBoard: ObservableObject, Codable {
+    
     @Published var columns: [KanbanColumn]
     @Published var title: String
     @Published var createdAt: Date

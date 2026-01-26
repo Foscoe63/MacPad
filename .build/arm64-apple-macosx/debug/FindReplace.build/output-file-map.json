@@ -1,0 +1,12 @@
+{
+  "": {
+    "swift-dependencies": "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/FindReplace.build/master.swiftdeps"
+  },
+  "/Volumes/Storage/Projects/MacPad/Packages/FindReplace/Sources/FindReplace/FindReplace.swift": {
+    "dependencies": "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/FindReplace.build/FindReplace.d",
+    "object": "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/FindReplace.build/FindReplace.swift.o",
+    "swiftmodule": "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/FindReplace.build/FindReplace~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/FindReplace.build/FindReplace.swiftdeps",
+    "diagnostics": "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/FindReplace.build/FindReplace.dia"
+  }
+}

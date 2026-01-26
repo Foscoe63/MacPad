@@ -1,0 +1,775 @@
+{
+  "builtTestProducts" : [
+
+  ],
+  "copyCommands" : {
+
+  },
+  "explicitTargetDependencyImportCheckingMode" : {
+    "none" : {
+
+    }
+  },
+  "generatedSourceTargetSet" : [
+
+  ],
+  "pluginDescriptions" : [
+
+  ],
+  "swiftCommands" : {
+    "C.Autocomplete-arm64-apple-macosx26.0-debug.module" : {
+      "executable" : "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/Autocomplete.build/sources",
+      "importPath" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Volumes/Storage/Projects/MacPad/Packages/Autocomplete/Sources/Autocomplete/Autocomplete.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/swift-version-51F8F1A6CD23E625.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/Autocomplete.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "Autocomplete",
+      "moduleOutputPath" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/Modules/Autocomplete.swiftmodule",
+      "objects" : [
+        "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/Autocomplete.build/Autocomplete.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx13.0",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-j14",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-emit-objc-header",
+        "-emit-objc-header-path",
+        "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/Autocomplete.build/include/Autocomplete-Swift.h",
+        "-swift-version",
+        "5",
+        "-plugin-path",
+        "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk",
+        "-F",
+        "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-F",
+        "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-I",
+        "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "macpad"
+      ],
+      "outputFileMapPath" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/Autocomplete.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/Autocomplete.build/Autocomplete.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/Modules/Autocomplete.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Volumes/Storage/Projects/MacPad/Packages/Autocomplete/Sources/Autocomplete/Autocomplete.swift"
+      ],
+      "tempsPath" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/Autocomplete.build",
+      "wholeModuleOptimization" : false
+    },
+    "C.CodeLinter-arm64-apple-macosx26.0-debug.module" : {
+      "executable" : "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/CodeLinter.build/sources",
+      "importPath" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Volumes/Storage/Projects/MacPad/Packages/CodeLinter/Sources/CodeLinter/CodeLinter.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/swift-version-51F8F1A6CD23E625.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/CodeLinter.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "CodeLinter",
+      "moduleOutputPath" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/Modules/CodeLinter.swiftmodule",
+      "objects" : [
+        "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/CodeLinter.build/CodeLinter.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx13.0",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-j14",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-emit-objc-header",
+        "-emit-objc-header-path",
+        "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/CodeLinter.build/include/CodeLinter-Swift.h",
+        "-swift-version",
+        "5",
+        "-plugin-path",
+        "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk",
+        "-F",
+        "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-F",
+        "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-I",
+        "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "macpad"
+      ],
+      "outputFileMapPath" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/CodeLinter.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/CodeLinter.build/CodeLinter.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/Modules/CodeLinter.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Volumes/Storage/Projects/MacPad/Packages/CodeLinter/Sources/CodeLinter/CodeLinter.swift"
+      ],
+      "tempsPath" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/CodeLinter.build",
+      "wholeModuleOptimization" : false
+    },
+    "C.FindReplace-arm64-apple-macosx26.0-debug.module" : {
+      "executable" : "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/FindReplace.build/sources",
+      "importPath" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Volumes/Storage/Projects/MacPad/Packages/FindReplace/Sources/FindReplace/FindReplace.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/swift-version-51F8F1A6CD23E625.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/FindReplace.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "FindReplace",
+      "moduleOutputPath" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/Modules/FindReplace.swiftmodule",
+      "objects" : [
+        "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/FindReplace.build/FindReplace.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx13.0",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-j14",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-emit-objc-header",
+        "-emit-objc-header-path",
+        "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/FindReplace.build/include/FindReplace-Swift.h",
+        "-swift-version",
+        "5",
+        "-plugin-path",
+        "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk",
+        "-F",
+        "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-F",
+        "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-I",
+        "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "macpad"
+      ],
+      "outputFileMapPath" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/FindReplace.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/FindReplace.build/FindReplace.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/Modules/FindReplace.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Volumes/Storage/Projects/MacPad/Packages/FindReplace/Sources/FindReplace/FindReplace.swift"
+      ],
+      "tempsPath" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/FindReplace.build",
+      "wholeModuleOptimization" : false
+    },
+    "C.SyntaxHighlighting-arm64-apple-macosx26.0-debug.module" : {
+      "executable" : "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/SyntaxHighlighting.build/sources",
+      "importPath" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Volumes/Storage/Projects/MacPad/Packages/SyntaxHighlighting/Sources/SyntaxHighlighting/SyntaxHighlighting.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/swift-version-51F8F1A6CD23E625.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/SyntaxHighlighting.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "SyntaxHighlighting",
+      "moduleOutputPath" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/Modules/SyntaxHighlighting.swiftmodule",
+      "objects" : [
+        "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/SyntaxHighlighting.build/SyntaxHighlighting.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx13.0",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-j14",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-emit-objc-header",
+        "-emit-objc-header-path",
+        "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/SyntaxHighlighting.build/include/SyntaxHighlighting-Swift.h",
+        "-swift-version",
+        "5",
+        "-plugin-path",
+        "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk",
+        "-F",
+        "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-F",
+        "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-I",
+        "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "macpad"
+      ],
+      "outputFileMapPath" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/SyntaxHighlighting.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/SyntaxHighlighting.build/SyntaxHighlighting.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/Modules/SyntaxHighlighting.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Volumes/Storage/Projects/MacPad/Packages/SyntaxHighlighting/Sources/SyntaxHighlighting/SyntaxHighlighting.swift"
+      ],
+      "tempsPath" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/SyntaxHighlighting.build",
+      "wholeModuleOptimization" : false
+    }
+  },
+  "swiftFrontendCommands" : {
+
+  },
+  "swiftTargetScanArgs" : {
+    "Autocomplete" : [
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "Autocomplete",
+      "-package-name",
+      "macpad",
+      "-c",
+      "/Volumes/Storage/Projects/MacPad/Packages/Autocomplete/Sources/Autocomplete/Autocomplete.swift",
+      "-I",
+      "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx13.0",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-j14",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-emit-objc-header",
+      "-emit-objc-header-path",
+      "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/Autocomplete.build/include/Autocomplete-Swift.h",
+      "-swift-version",
+      "5",
+      "-plugin-path",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk",
+      "-F",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-F",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-I",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "macpad",
+      "-driver-use-frontend-path",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ],
+    "CodeLinter" : [
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "CodeLinter",
+      "-package-name",
+      "macpad",
+      "-c",
+      "/Volumes/Storage/Projects/MacPad/Packages/CodeLinter/Sources/CodeLinter/CodeLinter.swift",
+      "-I",
+      "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx13.0",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-j14",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-emit-objc-header",
+      "-emit-objc-header-path",
+      "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/CodeLinter.build/include/CodeLinter-Swift.h",
+      "-swift-version",
+      "5",
+      "-plugin-path",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk",
+      "-F",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-F",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-I",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "macpad",
+      "-driver-use-frontend-path",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ],
+    "FindReplace" : [
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "FindReplace",
+      "-package-name",
+      "macpad",
+      "-c",
+      "/Volumes/Storage/Projects/MacPad/Packages/FindReplace/Sources/FindReplace/FindReplace.swift",
+      "-I",
+      "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx13.0",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-j14",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-emit-objc-header",
+      "-emit-objc-header-path",
+      "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/FindReplace.build/include/FindReplace-Swift.h",
+      "-swift-version",
+      "5",
+      "-plugin-path",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk",
+      "-F",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-F",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-I",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "macpad",
+      "-driver-use-frontend-path",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ],
+    "SyntaxHighlighting" : [
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "SyntaxHighlighting",
+      "-package-name",
+      "macpad",
+      "-c",
+      "/Volumes/Storage/Projects/MacPad/Packages/SyntaxHighlighting/Sources/SyntaxHighlighting/SyntaxHighlighting.swift",
+      "-I",
+      "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx13.0",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-j14",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-emit-objc-header",
+      "-emit-objc-header-path",
+      "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/SyntaxHighlighting.build/include/SyntaxHighlighting-Swift.h",
+      "-swift-version",
+      "5",
+      "-plugin-path",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk",
+      "-F",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-F",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-I",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "macpad",
+      "-driver-use-frontend-path",
+      "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ]
+  },
+  "targetDependencyMap" : {
+    "Autocomplete" : [
+
+    ],
+    "CodeLinter" : [
+
+    ],
+    "FindReplace" : [
+
+    ],
+    "SyntaxHighlighting" : [
+
+    ]
+  },
+  "testDiscoveryCommands" : {
+
+  },
+  "testEntryPointCommands" : {
+
+  },
+  "traitConfiguration" : {
+    "default" : {
+
+    }
+  },
+  "writeCommands" : {
+    "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/Autocomplete.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/Storage/Projects/MacPad/Packages/Autocomplete/Sources/Autocomplete/Autocomplete.swift"
+        }
+      ],
+      "outputFilePath" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/Autocomplete.build/sources"
+    },
+    "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/CodeLinter.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/Storage/Projects/MacPad/Packages/CodeLinter/Sources/CodeLinter/CodeLinter.swift"
+        }
+      ],
+      "outputFilePath" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/CodeLinter.build/sources"
+    },
+    "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/FindReplace.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/Storage/Projects/MacPad/Packages/FindReplace/Sources/FindReplace/FindReplace.swift"
+        }
+      ],
+      "outputFilePath" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/FindReplace.build/sources"
+    },
+    "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/SyntaxHighlighting.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/Storage/Projects/MacPad/Packages/SyntaxHighlighting/Sources/SyntaxHighlighting/SyntaxHighlighting.swift"
+        }
+      ],
+      "outputFilePath" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/SyntaxHighlighting.build/sources"
+    },
+    "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/swift-version-51F8F1A6CD23E625.txt" : {
+      "alwaysOutOfDate" : true,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<swift-get-version>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/AppsX/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+        }
+      ],
+      "outputFilePath" : "/Volumes/Storage/Projects/MacPad/.build/arm64-apple-macosx/debug/swift-version-51F8F1A6CD23E625.txt"
+    }
+  }
+}
