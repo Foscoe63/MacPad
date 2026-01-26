@@ -1,9 +1,10 @@
-# NewText â Native macOS Text Editor
+# MacPad — Native macOS Productivity Suite
 
-A modern, native SwiftUI text editor for macOS 15+ inspired by Notepad++ and NotepadNext.
+A modern, native SwiftUI productivity suite for macOS 15+ featuring both a powerful text editor and KanBan board.
 
-## â Features
+## ✅ Features
 
+### Text Editor
 - **Multi-tab editing** with draggable tabs
 - **Syntax highlighting** for Swift, Python, JavaScript, JSON, HTML, CSS
 - **Dark & Light mode** with system appearance detection
@@ -11,12 +12,21 @@ A modern, native SwiftUI text editor for macOS 15+ inspired by Notepad++ and Not
 - **File browser sidebar** (Finder-like navigation)
 - **Auto-completion** for keywords and bracket pairing
 - **Code linting** with real-time underlines (indentation, unused variables)
-- **Go to Definition** via â+click
+- **Go to Definition** via ⌘+click
 - **Project workspace support**
 - **Customizable toolbar** with drag-and-drop buttons
 - **Status bar** showing line/column, encoding, and file stats
 
-## ð ï¸ Build Instructions
+### KanBan Board
+- **Interactive task management** with drag-and-drop functionality
+- **Four default columns**: To Do, In Progress, Review, Done
+- **Task customization** with title, description, priority, due dates, and tags
+- **Visual indicators** for task priority and status
+- **Board statistics** with task breakdown by priority
+- **Persistent storage** of tasks and boards
+- **Easy switching** between text editor and KanBan board
+
+## 🛠️ Build Instructions
 
 ### 1. Prerequisites
 - macOS 15+
@@ -24,66 +34,77 @@ A modern, native SwiftUI text editor for macOS 15+ inspired by Notepad++ and Not
 - Basic familiarity with SwiftUI and macOS development
 
 ### 2. Setup
-1. Clone or copy the entire `/Users/ewg/NewText` folder.
-2. Open `NewText.xcodeproj` in Xcode (located at `/Users/ewg/NewText/Project/NewText.xcodeproj`).
-3. Select **NewText** as the target.
+1. Clone or copy the entire `/Users/ewg/MacPad` folder.
+2. Open `MacPad.xcodeproj` in Xcode (located at `/Users/ewg/MacPad/MacPad.xcodeproj`).
+3. Select **MacPad** as the target.
 4. Set Deployment Target to **macOS 15.0+**.
 
 ### 3. Build & Run
-- Press **â + R** to build and run.
-- The app will launch with an empty untitled document.
+- Press **⌘ + R** to build and run.
+- The app will launch with the ability to switch between text editor and KanBan board.
 
 ### 4. Build for Distribution
-1. Go to **Product â Archive**.
+1. Go to **Product → Archive**.
 2. Once archived, click **Distribute App**.
 3. Choose **Developer ID** or **Mac App Store**.
 4. Follow the prompts to sign and export.
 
 ### 5. Dependencies
-- No external dependencies â uses only native Swift/SwiftUI frameworks.
+- No external dependencies — uses only native Swift/SwiftUI frameworks.
 
-## ð File Structure
+## 📁 File Structure
 
 ```
-NewText/
-âââ AppDelegate.swift
-âââ ContentView.swift
-âââ Shared/
-â   âââ Constants.swift
-â   âââ Extensions.swift
-â   âââ Observables/
-âââ UI/
-â   âââ Toolbar/
-â   âââ Sidebar/
-â   âââ Editor/
-â   âââ Dialog/
-â   âââ Modal/
-â   âââ StatusBar/
-âââ Services/
-âââ Models/
-âââ Assets/        # Xcode Asset Catalog (for icons)
-âââ Project/
-    âââ Package.swift
-    âââ NewText.xcodeproj
+MacPad/
+├── AppDelegate.swift
+├── ContentView.swift
+├── Shared/
+│   ├── Constants.swift
+│   ├── Extensions.swift
+│   └── Observables/
+│       ├── AppState.swift
+│       └── KanbanState.swift
+├── UI/
+│   ├── Toolbar/
+│   ├── Sidebar/
+│   ├── Editor/
+│   ├── Dialog/
+│   ├── Modal/
+│   ├── StatusBar/
+│   └── Kanban/
+│       ├── KanbanBoardView.swift
+│       ├── KanbanColumnView.swift
+│       └── TaskCardView.swift
+├── Services/
+├── Models/
+│   ├── Document.swift
+│   ├── Task.swift
+│   └── KanbanBoard.swift
+├── Assets/        # Xcode Asset Catalog (for icons)
+└── Project/
+    ├── Package.swift
+    └── MacPad.xcodeproj
 ```
 
-## ð Technical Notes
+## 📚 Technical Notes
 
-- Uses **SwiftUI** exclusively â no AppKit interop.
+- Uses **SwiftUI** exclusively — no AppKit interop.
 - All state managed via `@StateObject` and `@ObservedObject`.
 - Syntax highlighting uses **`AttributedString`** with regex patterns from `SyntaxMode`.
 - File I/O handled via `FileManager`, async-safe.
-- Undo/Redo leverages SwiftUIâs built-in `UndoManager`.
+- Undo/Redo leverages SwiftUI's built-in `UndoManager`.
+- KanBan board persists data to user's Documents directory as JSON.
 
-## ð Future Enhancements
+## 🚀 Future Enhancements
 
 - Themes via `.xcassets` (color presets)
 - Plugin system for custom syntaxes
 - Git integration
 - Terminal panel
 - Multi-cursor editing
+- Export KanBan boards to various formats
+- Collaboration features for shared boards
 
-## ð License
+## 📜 License
 
-MIT â Free to use, modify, and distribute.
-
+MIT — Free to use, modify, and distribute.

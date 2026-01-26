@@ -7,6 +7,9 @@ struct ContentView: View {
     @AppStorage("app.theme") private var appTheme: String = "light" // system, light, dark
     @Environment(\.scenePhase) private var scenePhase
 
+    // Tab selection between Text Editor and Kanban
+    @State private var selectedTab: ContentView.Tab = .editor
+    
     // Sidebar resizing state
     @State private var sidebarWidth: CGFloat = 260
     @State private var sidebarWidthBaseline: CGFloat = 260
@@ -79,7 +82,86 @@ struct ContentView: View {
         return Color.primary // Default system color
     }
 
+    enum Tab {
+        case editor
+        case kanban
+    }
+
     var body: some View {
+        VStack(spacing: 0) {
+            // Top Tab Bar
+            HStack {
+                Button(action: { selectedTab = .editor }) {
+                    Text("Editor")
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(selectedTab == .editor ? Color(nsColor: .selectedControlColor) : Color.clear)
+                        .foregroundColor(selectedTab == .editor ? Color(nsColor: .selectedControlTextColor) : .primary)
+                        .cornerRadius(6)
+                }
+                
+                Button(action: { selectedTab = .kanban }) {
+                    Text("Kanban")
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(selectedTab == .kanban ? Color(nsColor: .selectedControlColor) : Color.clear)
+                        .foregroundColor(selectedTab == .kanban ? Color(nsColor: .selectedControlTextColor) : .primary)
+                        .cornerRadius(6)
+                }
+                
+                Spacer()
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 4)
+            .background(Color(nsColor: .headerColor))
+
+            // Content based on selected tab
+            Group {
+                switch selectedTab {
+                case .editor:
+                    editorView
+                case .kanban:
+                    kanbanView
+                }
+            }
+        }
+        .environmentObject(workspaceState)
+        .environmentObject(appState)
+        .frame(minWidth: 800, minHeight: 500)
+        .preferredColorScheme(preferredScheme)
+        .onChange(of: scenePhase) { _, newPhase in
+            switch newPhase {
+            case .inactive, .background:
+                appState.saveSessionIfEnabled()
+            default:
+                break
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
+            appState.saveSessionIfEnabled()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.willResignActiveNotification)) { _ in
+            appState.saveSessionIfEnabled()
+        }
+        .sheet(isPresented: $showingQuickOpen) {
+            QuickOpenView(isPresented: $showingQuickOpen)
+                .environmentObject(workspaceState)
+                .environmentObject(appState)
+        }
+        .sheet(isPresented: $showingGoToLine) {
+            if let doc = appState.getDocument(id: appState.selectedTab) {
+                GoToLineView(isPresented: $showingGoToLine, document: doc)
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .mpQuickOpen)) { _ in
+            showingQuickOpen = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .mpGoToLine)) { _ in
+            showingGoToLine = true
+        }
+    }
+    
+    private var editorView: some View {
         HStack(spacing: 0) {
             // Sidebar
             VStack(alignment: .leading, spacing: 0) {
@@ -164,40 +246,10 @@ struct ContentView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .environmentObject(workspaceState)
-        .environmentObject(appState)
-        .frame(minWidth: 800, minHeight: 500)
-        .preferredColorScheme(preferredScheme)
-        .onChange(of: scenePhase) { _, newPhase in
-            switch newPhase {
-            case .inactive, .background:
-                appState.saveSessionIfEnabled()
-            default:
-                break
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
-            appState.saveSessionIfEnabled()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: NSApplication.willResignActiveNotification)) { _ in
-            appState.saveSessionIfEnabled()
-        }
-        .sheet(isPresented: $showingQuickOpen) {
-            QuickOpenView(isPresented: $showingQuickOpen)
-                .environmentObject(workspaceState)
-                .environmentObject(appState)
-        }
-        .sheet(isPresented: $showingGoToLine) {
-            if let doc = appState.getDocument(id: appState.selectedTab) {
-                GoToLineView(isPresented: $showingGoToLine, document: doc)
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .mpQuickOpen)) { _ in
-            showingQuickOpen = true
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .mpGoToLine)) { _ in
-            showingGoToLine = true
-        }
+    }
+    
+    private var kanbanView: some View {
+        KanbanBoardView()
     }
     
     private func clampWidth(_ w: CGFloat) -> CGFloat {

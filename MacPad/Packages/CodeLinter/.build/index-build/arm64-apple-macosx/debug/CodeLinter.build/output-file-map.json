@@ -1,0 +1,12 @@
+{
+  "": {
+    "swift-dependencies": "/Volumes/Storage/Projects/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/CodeLinter.build/master.swiftdeps"
+  },
+  "/Volumes/Storage/Projects/MacPad/MacPad/Packages/CodeLinter/Sources/CodeLinter/CodeLinter.swift": {
+    "dependencies": "/Volumes/Storage/Projects/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/CodeLinter.build/CodeLinter.d",
+    "object": "/Volumes/Storage/Projects/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/CodeLinter.build/CodeLinter.swift.o",
+    "swiftmodule": "/Volumes/Storage/Projects/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/CodeLinter.build/CodeLinter~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/Storage/Projects/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/CodeLinter.build/CodeLinter.swiftdeps",
+    "diagnostics": "/Volumes/Storage/Projects/MacPad/MacPad/Packages/CodeLinter/.build/index-build/arm64-apple-macosx/debug/CodeLinter.build/CodeLinter.dia"
+  }
+}
