@@ -9,8 +9,7 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "Autocomplete",
-            path: "Sources/Autocomplete"
+            name: "Autocomplete"
         )
     ]
 )

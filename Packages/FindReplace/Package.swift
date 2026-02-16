@@ -9,8 +9,7 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "FindReplace",
-            path: "Sources/FindReplace"
+            name: "FindReplace"
         )
     ]
 )

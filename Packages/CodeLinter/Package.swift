@@ -9,8 +9,7 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "CodeLinter",
-            path: "Sources/CodeLinter"
+            name: "CodeLinter"
         )
     ]
 )

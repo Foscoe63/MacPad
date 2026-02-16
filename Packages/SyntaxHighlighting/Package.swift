@@ -9,8 +9,7 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "SyntaxHighlighting",
-            path: "Sources/SyntaxHighlighting"
+            name: "SyntaxHighlighting"
         )
     ]
 )

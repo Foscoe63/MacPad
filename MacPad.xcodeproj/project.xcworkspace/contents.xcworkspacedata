@@ -4,4 +4,22 @@
    <FileRef
       location = "self:">
    </FileRef>
+   <FileRef
+      location = "group:find_codelinter_reference.sh">
+   </FileRef>
+   <FileRef
+      location = "group:PackagesAutocompletePackage.swift">
+   </FileRef>
+   <FileRef
+      location = "group:setup_packages.sh">
+   </FileRef>
+   <FileRef
+      location = "group:AutocompletePackage.swift">
+   </FileRef>
+   <FileRef
+      location = "group:CodeLinterPackage.swift">
+   </FileRef>
+   <FileRef
+      location = "group:FindReplacePackage.swift">
+   </FileRef>
 </Workspace>

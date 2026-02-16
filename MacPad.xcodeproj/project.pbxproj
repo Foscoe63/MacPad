@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		DED449AE2F27CC84005BC37D /* PackagesCodeLinterPackage.swift in Sources */ = {isa = PBXBuildFile; fileRef = DED449AD2F27CC84005BC37D /* PackagesCodeLinterPackage.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		DE4C292F2EAD1ECE0075C69B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -24,9 +28,12 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		DE4526AC2F27C6A5003F142A /* MacPad.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = MacPad.xcodeproj; sourceTree = "<group>"; };
 		DE4C29212EAD1ECD0075C69B /* MacPad.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MacPad.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DE4C292E2EAD1ECE0075C69B /* MacPadTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MacPadTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DE4C29382EAD1ECE0075C69B /* MacPadUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MacPadUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		DED448EA2F27CA1A005BC37D /* MacPad.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = MacPad.xcodeproj; sourceTree = "<group>"; };
+		DED449AD2F27CC84005BC37D /* PackagesCodeLinterPackage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackagesCodeLinterPackage.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -62,11 +69,19 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		DE4526AE2F27C6A5003F142A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		DE4C29182EAD1ECD0075C69B = {
 			isa = PBXGroup;
 			children = (
 				DE4C29232EAD1ECD0075C69B /* MacPad */,
 				DE4C29222EAD1ECD0075C69B /* Products */,
+				DED449AD2F27CC84005BC37D /* PackagesCodeLinterPackage.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -76,6 +91,13 @@
 				DE4C29212EAD1ECD0075C69B /* MacPad.app */,
 				DE4C292E2EAD1ECE0075C69B /* MacPadTests.xctest */,
 				DE4C29382EAD1ECE0075C69B /* MacPadUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		DED448EC2F27CA1A005BC37D /* Products */ = {
+			isa = PBXGroup;
+			children = (
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -180,6 +202,16 @@
 			preferredProjectObjectVersion = 77;
 			productRefGroup = DE4C29222EAD1ECD0075C69B /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = DED448EC2F27CA1A005BC37D /* Products */;
+					ProjectRef = DED448EA2F27CA1A005BC37D /* MacPad.xcodeproj */;
+				},
+				{
+					ProductGroup = DE4526AE2F27C6A5003F142A /* Products */;
+					ProjectRef = DE4526AC2F27C6A5003F142A /* MacPad.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				DE4C29202EAD1ECD0075C69B /* MacPad */,
@@ -218,6 +250,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DED449AE2F27CC84005BC37D /* PackagesCodeLinterPackage.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
